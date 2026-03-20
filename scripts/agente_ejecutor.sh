@@ -1,5 +1,5 @@
 #!/bin/zsh
-# AGENTE 4 - EJECUTOR — Control de Acceso con backoff inteligente
+# ARES — Dios de la accion. Ejecutor con backoff inteligente
 N8N_KEY="${N8N_API_KEY}"
 BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
 WEBHOOK="https://n8n.dealbapropiedades.com.mx/webhook/syscom-trigger-run"
@@ -11,7 +11,7 @@ WAIT_AFTER_SUCCESS=20  # 20s entre runs exitosos
 CONSEC_ERRORS=0
 MAX_CONSEC_ERRORS=3    # Tras 3 errores seguidos, esperar más
 
-echo "$(date '+%H:%M:%S') - Ejecutor iniciado (v2 con backoff)" >> $LOG
+echo "$(date '+%H:%M:%S') - ARES iniciado (v2 con backoff)" >> $LOG
 
 COUNT_BEFORE=$(python3 -c "
 import urllib.request,json
@@ -28,7 +28,7 @@ RUN=0
 while true; do
   clear
   echo "╔══════════════════════════════════════════════════════╗"
-  echo "║     🔁  AGENTE 4 — EJECUTOR  Control de Acceso      ║"
+  echo "║     ⚔️  ARES — Ejecutor  Control de Acceso            ║"
   echo "╠══════════════════════════════════════════════════════╣"
 
   # Obtener estado

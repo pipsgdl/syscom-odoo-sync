@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-COORDINADOR INTERACTIVO — Claude Agent
+ATENEA — Sabiduria estrategica. Coordinador interactivo via Claude CLI
 Habla con Claude en tiempo real con contexto del sistema Syscom→Odoo
 """
 import urllib.request, json, os, sys, subprocess, tempfile
@@ -31,7 +31,7 @@ def get_system_context():
             execs = json.loads(r2.read()).get('data', [])
 
         p = {"jsonrpc":"2.0","method":"call","id":1,"params":{"service":"object","method":"execute_kw",
-            "args":["ocean-tech-0326",2,os.environ.get("ODOO_PASSWORD", ""),"product.template","search_count",[[["active","=",True]]]]}}
+            "args":["ocean-tech-0326",2,os.environ.get("ODOO_PASSWORD",""),"product.template","search_count",[[["active","=",True]]]]}}
         req3 = urllib.request.Request("https://ocean-tech-0326.odoo.com/jsonrpc",
             data=json.dumps(p).encode(), headers={"Content-Type":"application/json"}, method='POST')
         with urllib.request.urlopen(req3, timeout=12) as r3:
@@ -59,7 +59,7 @@ def get_system_context():
 
 def ask_claude(user_msg, context):
     """Llama a Claude via CLI (ya tiene auth integrada)"""
-    system_prompt = f"""Eres el Agente Coordinador de un sistema de sincronización de catálogo Syscom→Odoo para una empresa de seguridad electrónica en Jalisco, México.
+    system_prompt = f"""Eres ATENEA, la diosa de la sabiduria estrategica del equipo de agentes IA para sincronizacion Syscom→Odoo de una empresa de seguridad electronica en Jalisco, Mexico.
 
 ESTADO ACTUAL DEL SISTEMA:
 {json.dumps(context, indent=2, ensure_ascii=False)}
@@ -84,10 +84,10 @@ Responde en español, conciso y accionable."""
     # Historial como texto para el prompt
     hist_text = ""
     for msg in conversation_history[-10:]:
-        role = "Felipe" if msg["role"] == "user" else "Coordinador"
+        role = "Felipe" if msg["role"] == "user" else "Atenea"
         hist_text += f"{role}: {msg['content']}\n"
 
-    full_prompt = f"{hist_text}Felipe: {user_msg}\nCoordinador:"
+    full_prompt = f"{hist_text}Felipe: {user_msg}\nAtenea:"
 
     try:
         result = subprocess.run(
@@ -120,7 +120,7 @@ def show_status(ctx):
 # ─── MAIN ───────────────────────────────────────────────
 print("\033[1;35m")
 print("╔══════════════════════════════════════════════════════════╗")
-print("║     🤖  COORDINADOR INTERACTIVO — Claude Sonnet 4.6      ║")
+print("║     🦉  ATENEA — Sabiduria Estrategica (Claude)           ║")
 print("║     Escribe tu mensaje y presiona Enter                  ║")
 print("║     Comandos: /estado  /productos  /limpiar  /salir      ║")
 print("╚══════════════════════════════════════════════════════════╝")
@@ -132,16 +132,16 @@ show_status(ctx)
 
 while True:
     try:
-        user_input = input("\033[1;33mFelipe → Coordinador:\033[0m ").strip()
+        user_input = input("\033[1;33mFelipe → Atenea:\033[0m ").strip()
     except (EOFError, KeyboardInterrupt):
-        print("\n👋 Coordinador desconectado.")
+        print("\n👋 Atenea desconectada.")
         break
 
     if not user_input:
         continue
 
     if user_input in ('/salir', '/exit', '/quit'):
-        print("👋 Coordinador desconectado.")
+        print("👋 Atenea desconectada.")
         break
 
     elif user_input == '/estado':
@@ -152,7 +152,7 @@ while True:
     elif user_input == '/productos':
         try:
             p = {"jsonrpc":"2.0","method":"call","id":1,"params":{"service":"object","method":"execute_kw",
-                "args":["ocean-tech-0326",2,os.environ.get("ODOO_PASSWORD", ""),"product.template","search_count",[[["active","=",True]]]]}}
+                "args":["ocean-tech-0326",2,os.environ.get("ODOO_PASSWORD",""),"product.template","search_count",[[["active","=",True]]]]}}
             req = urllib.request.Request("https://ocean-tech-0326.odoo.com/jsonrpc",
                 data=json.dumps(p).encode(), headers={"Content-Type":"application/json"}, method='POST')
             with urllib.request.urlopen(req, timeout=15) as r:
@@ -171,7 +171,7 @@ while True:
     if len(conversation_history) % 6 == 0:
         ctx = get_system_context()
 
-    print("\n\033[1;36m🤖 Coordinador:\033[0m")
+    print("\n\033[1;36m🦉 Atenea:\033[0m")
     response = ask_claude(user_input, ctx)
     print(f"{response}\n")
 

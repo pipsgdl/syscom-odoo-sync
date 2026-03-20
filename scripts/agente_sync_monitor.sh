@@ -1,5 +1,5 @@
 #!/bin/zsh
-# AGENTE 1 - SYNC MONITOR: Vigila ejecuciones Syscom→Odoo en tiempo real
+# CENTINELA — Vigila ejecuciones Syscom→Odoo en tiempo real
 N8N_KEY="${N8N_API_KEY}"
 BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
 CATS=("Videovigilancia" "Redes" "Radiocomunicación" "Automatización" "Cableado" "Control de Acceso" "Energía" "Detección Incendio" "Sonido y Video" "Herramientas")
@@ -7,7 +7,7 @@ CATS=("Videovigilancia" "Redes" "Radiocomunicación" "Automatización" "Cableado
 while true; do
   clear
   echo "╔══════════════════════════════════════════════════════╗"
-  echo "║     🔄  AGENTE 1 — SYNC MONITOR  Syscom → Odoo      ║"
+  echo "║     🛡️  CENTINELA — Vigila Syscom → Odoo              ║"
   echo "╠══════════════════════════════════════════════════════╣"
 
   STATE=$(curl -s -H "X-N8N-API-KEY: $N8N_KEY" "$BASE/workflows/ylxPHHe9ymC49FTO" | python3 -c "

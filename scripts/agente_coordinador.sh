@@ -1,12 +1,12 @@
 #!/bin/zsh
-# AGENTE 3 - COORDINADOR: Estado del coordinador y reportes por correo
+# HERMES — Mensajero de los dioses. Reportes y comunicaciones por correo
 N8N_KEY="${N8N_API_KEY}"
 BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
 
 while true; do
   clear
   echo "╔══════════════════════════════════════════════════════╗"
-  echo "║     📧  AGENTE 3 — COORDINADOR & REPORTES           ║"
+  echo "║     📧  HERMES — Mensajero & Reportes                ║"
   echo "╠══════════════════════════════════════════════════════╣"
 
   curl -s -H "X-N8N-API-KEY: $N8N_KEY" "$BASE/executions?workflowId=fxr0UXKZNsJPZ9Bv&limit=5" | python3 -c "

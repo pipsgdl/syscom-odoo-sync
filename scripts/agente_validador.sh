@@ -1,17 +1,17 @@
 #!/bin/zsh
-# AGENTE 2 - VALIDADOR: Cuenta y valida productos en Odoo
+# THEMIS — Diosa de la justicia. Valida completitud de productos en Odoo
 
 while true; do
   clear
   echo "╔══════════════════════════════════════════════════════╗"
-  echo "║       📦  AGENTE 2 — VALIDADOR DE PRODUCTOS          ║"
+  echo "║       ⚖️  THEMIS — Validadora de Productos             ║"
   echo "╠══════════════════════════════════════════════════════╣"
 
   python3 << 'PYEOF'
 import urllib.request, json
 
 odoo = "https://ocean-tech-0326.odoo.com/jsonrpc"
-db, uid, pwd = "ocean-tech-0326", 2, os.environ.get("ODOO_PASSWORD","")
+db, uid, pwd = "ocean-tech-0326", 2, ${ODOO_PASSWORD}
 
 def q(model, method, args, kwargs={}):
     p = {"jsonrpc":"2.0","method":"call","id":1,"params":{
