@@ -22,7 +22,7 @@ print(g.get('categoryIndex',5), g.get('page',1), g.get('lastSave','?'))
   PRODUCTS=$(python3 -c "
 import urllib.request,json
 p={'jsonrpc':'2.0','method':'call','id':1,'params':{'service':'object','method':'execute_kw',
-   'args':['ocean-tech-0326',2,'M1ercole\$','product.template','search_count',[[['active','=',True]]]]}}
+   'args':['ocean-tech-0326',2,os.environ.get('ODOO_PASSWORD',''),'product.template','search_count',[[['active','=',True]]]]}}
 req=urllib.request.Request('https://ocean-tech-0326.odoo.com/jsonrpc',data=json.dumps(p).encode(),
    headers={'Content-Type':'application/json'},method='POST')
 print(json.loads(urllib.request.urlopen(req,timeout=10).read()).get('result',0))
