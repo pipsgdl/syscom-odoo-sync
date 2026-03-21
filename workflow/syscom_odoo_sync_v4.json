@@ -1,0 +1,209 @@
+{
+  "updatedAt": "2026-03-21T00:34:13.296Z",
+  "createdAt": "2026-03-20T22:44:53.934Z",
+  "id": "2rMRq0B9ewvd1lBn",
+  "name": "SYNC v3 — Syscom → Odoo (Simplificado)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "syscom-sync-v3",
+        "httpMethod": "POST",
+        "options": {}
+      },
+      "id": "trigger-webhook",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        500
+      ],
+      "webhookId": "syscom-sync-v3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// SYNC v4 — Full Catalog Processor (54,391 productos)\n// Uses categoria={id} endpoint for complete coverage\n// Fixes: UOM update error, full 12 categories, batch offset\n// ============================================================\n\nconst ODOO_URL = \"https://ocean-tech-0326.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech-0326\", UID = 2, PWD = \"M1ercole$\";\nconst INCOME_ACCOUNT = 145;\n\n// 12 Syscom categories with their IDs and Odoo mappings\nconst CATS = [\n  { id: 22,    name: \"Videovigilancia\",         categ_id: 4,   expense: 128 },\n  { id: 25,    name: \"Radiocomunicación\",       categ_id: 11,  expense: 132 },\n  { id: 26,    name: \"Redes e IT\",              categ_id: 11,  expense: 132 },\n  { id: 27,    name: \"IoT / GPS / Telemática\",  categ_id: 11,  expense: 132 },\n  { id: 30,    name: \"Energía / Herramientas\",  categ_id: 94,  expense: 143 },\n  { id: 32,    name: \"Automatización e Intrusión\", categ_id: 516, expense: 137 },\n  { id: 37,    name: \"Control de Acceso\",       categ_id: 7,   expense: 131 },\n  { id: 38,    name: \"Detección de Fuego\",      categ_id: 9,   expense: 129 },\n  { id: 65747, name: \"Marketing\",               categ_id: 14,  expense: 128 },\n  { id: 65811, name: \"Cableado Estructurado\",   categ_id: 10,  expense: 133 },\n  { id: 66523, name: \"Audio y Video\",           categ_id: 167, expense: 132 },\n  { id: 66630, name: \"Industria / BMS / Robots\", categ_id: 516, expense: 137 },\n];\n\nconst UOM_MAP = {\n  \"Pieza\": 44, \"Piezas\": 44, \"pieza\": 44, \"pza\": 44, \"Pza\": 44, \"PZA\": 44,\n  \"Unidad\": 27, \"Unidades\": 27, \"Units\": 1, \"unidad\": 27,\n  \"Bobina 100 mts\": 39, \"Bobina 305 mts\": 40, \"Bobina 1000 mts\": 41, \"Bobina 152 mts\": 42,\n  \"Metro\": 5, \"Metros\": 5, \"metro\": 5, \"mts\": 5,\n  \"Rollo\": 39, \"rollo\": 39, \"Par\": 44, \"Juego\": 44, \"Kit\": 44, \"Set\": 44,\n};\n\n// === Helpers ===\nasync function odoo(model, method, args, kwargs = {}) {\n  const resp = await this.helpers.httpRequest({\n    method: \"POST\", url: ODOO_URL, json: true,\n    body: { jsonrpc: \"2.0\", method: \"call\", id: Date.now(),\n      params: { service: \"object\", method: \"execute_kw\",\n        args: [DB, UID, PWD, model, method, args], kwargs } }\n  });\n  if (resp.error) throw new Error(JSON.stringify(resp.error.data || resp.error).substring(0, 500));\n  return resp.result;\n}\n\nasync function imgToBase64(url) {\n  if (!url) return null;\n  try {\n    const resp = await this.helpers.httpRequest({\n      method: \"GET\", url, encoding: \"arraybuffer\",\n      options: { timeout: 15000 }\n    });\n    if (resp && resp.length) return Buffer.from(resp).toString(\"base64\");\n    return null;\n  } catch(e) { return null; }\n}\n\nconst num = (v, d=0) => { const n = Number(v); return Number.isFinite(n) ? n : d; };\n\n// === Read position from staticData ===\nconst sd = $getWorkflowStaticData(\"global\");\nlet catIdx = sd.categoryIndex || 0;\nlet page = sd.page || 1;\nlet offset = sd.offset || 0;\n\n// Initialize counters if not present\nif (!sd.totalCreated) sd.totalCreated = 0;\nif (!sd.totalUpdated) sd.totalUpdated = 0;\nif (!sd.totalErrors) sd.totalErrors = 0;\nif (!sd.totalProcessed) sd.totalProcessed = 0;\n\n// Check if all done\nif (catIdx >= CATS.length) {\n  return [{ json: {\n    _done: true,\n    message: \"Todas las categorías completadas\",\n    totalCreated: sd.totalCreated,\n    totalUpdated: sd.totalUpdated,\n    totalErrors: sd.totalErrors,\n    totalProcessed: sd.totalProcessed\n  }}];\n}\n\nconst cat = CATS[catIdx];\nconst BATCH_SIZE = 30;\n\nconsole.log(\"=== BATCH: cat[\" + catIdx + \"] \" + cat.name + \" (id:\" + cat.id + \") page \" + page + \" offset \" + offset + \" ===\");\n\n// === 1. Get Syscom Token ===\nlet token;\ntry {\n  const tokenResp = await this.helpers.httpRequest({\n    method: \"POST\",\n    url: \"https://developers.syscom.mx/oauth/token\",\n    headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n    body: \"client_id=zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7&client_secret=thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz&grant_type=client_credentials\"\n  });\n  token = tokenResp.access_token;\n} catch(e) {\n  return [{ json: { status: \"error\", error: \"Token failed: \" + e.message, catIdx, page } }];\n}\n\n// === 2. Fetch products from Syscom using categoria={id} ===\nlet allProductos = [];\nlet lastPage = false;\nlet totalPages = 0;\ntry {\n  const url = \"https://developers.syscom.mx/api/v1/productos?categoria=\" + cat.id + \"&page=\" + page + \"&moneda=MXN\";\n  const resp = await this.helpers.httpRequest({\n    method: \"GET\", url,\n    headers: { \"Authorization\": \"Bearer \" + token },\n    json: true,\n    options: { timeout: 30000 }\n  });\n  allProductos = resp.productos || [];\n  totalPages = resp.paginas || 0;\n  if (totalPages > 0 && page >= totalPages) lastPage = true;\n  if (allProductos.length === 0) lastPage = true;\n} catch(e) {\n  // Rate limit or other error — don't advance, retry next time\n  return [{ json: { status: \"error\", error: \"Syscom fetch failed: \" + e.message, catIdx, catName: cat.name, page } }];\n}\n\nif (allProductos.length === 0) {\n  sd.categoryIndex = catIdx + 1;\n  sd.page = 1;\n  sd.offset = 0;\n  return [{ json: { _empty: true, catIdx, catName: cat.name, page, message: \"Sin productos, avanzando\" } }];\n}\n\n// Apply offset and batch limit\nlet productos = allProductos.slice(offset, offset + BATCH_SIZE);\nconst remainingOnPage = allProductos.length - (offset + productos.length);\n\nif (productos.length === 0) {\n  // Offset exceeded products on this page - advance\n  if (lastPage) {\n    sd.categoryIndex = catIdx + 1;\n    sd.page = 1;\n  } else {\n    sd.page = page + 1;\n  }\n  sd.offset = 0;\n  return [{ json: { _empty: true, catIdx, catName: cat.name, page, offset, message: \"Offset exceeded, advancing\" } }];\n}\n\n// === 3. Process each product ===\nconst results = [];\nlet created = 0, updated = 0, errors = 0;\n\nfor (const p of productos) {\n  try {\n    const sku = String(p.modelo || \"\").trim();\n    if (!sku) continue;\n\n    const nombre = String(p.titulo || \"Producto sin nombre\");\n    const costo = num(p.precios?.precio_descuento ?? p.precios?.precio_1 ?? 0);\n    const listPrice = costo > 0 ? (costo * 1.16) / 0.7 : 0;\n    const satKey = String(p.sat_key || \"\");\n    const marca = String(p.marca || \"\");\n    const imgUrl = String(p.img_portada || \"\");\n\n    const uomNombre = p.unidad_de_medida?.nombre || \"Pieza\";\n    const uomId = UOM_MAP[uomNombre] || 44;\n\n    // UNSPSC lookup\n    let unspscId = false;\n    if (satKey && satKey !== \"null\" && satKey !== \"undefined\" && satKey.length >= 4) {\n      try {\n        const sat = await odoo.call(this, \"product.unspsc.code\", \"search_read\",\n          [[[\"code\",\"=\",satKey]]], {fields:[\"id\"], limit:1});\n        if (sat && sat.length) unspscId = sat[0].id;\n      } catch(e) { /* skip UNSPSC if lookup fails */ }\n    }\n\n    // Image\n    let imageB64 = await imgToBase64.call(this, imgUrl);\n\n    // Search existing by default_code OR barcode\n    let existing = await odoo.call(this, \"product.template\", \"search_read\",\n      [[[\"default_code\",\"=\",sku]]], {fields:[\"id\",\"default_code\",\"barcode\"], limit:1});\n    if (!existing || !existing.length) {\n      existing = await odoo.call(this, \"product.template\", \"search_read\",\n        [[[\"barcode\",\"=\",sku]]], {fields:[\"id\",\"default_code\",\"barcode\"], limit:1});\n    }\n\n    let op, prodId;\n\n    if (existing && existing.length) {\n      // === UPDATE existing product ===\n      prodId = existing[0].id;\n      const updateVals = {\n        name: nombre,\n        standard_price: costo,\n        list_price: Math.round(listPrice * 100) / 100,\n        categ_id: cat.categ_id,\n        // NO uom_id on updates — causes \"asientos contables\" error\n        property_account_income_id: INCOME_ACCOUNT,\n        property_account_expense_id: cat.expense,\n        description_sale: marca ? \"Marca: \" + marca : \"\",\n        sale_ok: true,\n        purchase_ok: true,\n      };\n      if (unspscId) updateVals.unspsc_code_id = unspscId;\n      if (imageB64) updateVals.image_1920 = imageB64;\n\n      await odoo.call(this, \"product.template\", \"write\", [[prodId], updateVals]);\n      op = \"update\";\n      updated++;\n      // Free memory\n      imageB64 = null;\n      if (updateVals.image_1920) delete updateVals.image_1920;\n    } else {\n      // === CREATE new product ===\n      const createVals = {\n        name: nombre,\n        default_code: sku,\n        barcode: sku,\n        standard_price: costo,\n        list_price: Math.round(listPrice * 100) / 100,\n        categ_id: cat.categ_id,\n        uom_id: uomId,\n        property_account_income_id: INCOME_ACCOUNT,\n        property_account_expense_id: cat.expense,\n        description_sale: marca ? \"Marca: \" + marca : \"\",\n        sale_ok: true,\n        purchase_ok: true,\n      };\n      if (unspscId) createVals.unspsc_code_id = unspscId;\n      if (imageB64) createVals.image_1920 = imageB64;\n\n      prodId = await odoo.call(this, \"product.template\", \"create\", [createVals]);\n      op = \"create\";\n      created++;\n      // Free memory\n      imageB64 = null;\n      if (createVals.image_1920) delete createVals.image_1920;\n    }\n\n    results.push({ json: { sku, op, prodId, status: \"ok\" } });\n  } catch(err) {\n    errors++;\n    results.push({ json: { sku: p.modelo || \"?\", status: \"error\", error: err.message.substring(0,200) } });\n  }\n}\n\n// === 4. Advance position ===\nif (remainingOnPage > 0) {\n  // More products on this page — advance offset\n  sd.offset = offset + BATCH_SIZE;\n} else if (lastPage) {\n  // Last page of this category — advance to next category\n  sd.categoryIndex = catIdx + 1;\n  sd.page = 1;\n  sd.offset = 0;\n} else {\n  // More pages — advance page\n  sd.page = page + 1;\n  sd.offset = 0;\n}\n\n// Update global counters\nsd.totalCreated += created;\nsd.totalUpdated += updated;\nsd.totalErrors += errors;\nsd.totalProcessed += (created + updated + errors);\n\n// Add summary as first item\nconst summary = {\n  json: {\n    _summary: true,\n    category: cat.name,\n    categoryId: cat.id,\n    categoryIndex: catIdx,\n    page, offset,\n    totalPages,\n    nextCategoryIndex: sd.categoryIndex,\n    nextPage: sd.page,\n    nextOffset: sd.offset,\n    batchSize: productos.length,\n    created, updated, errors,\n    total: created + updated + errors,\n    lastPage,\n    globalTotals: {\n      created: sd.totalCreated,\n      updated: sd.totalUpdated,\n      errors: sd.totalErrors,\n      processed: sd.totalProcessed\n    }\n  }\n};\n\nreturn [summary, ...results];\n"
+      },
+      "id": "sync-batch",
+      "name": "Sync Batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sync Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sync Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "executionTimeout": 600
+  },
+  "staticData": {
+    "global": {
+      "categoryIndex": 0,
+      "page": 1,
+      "offset": 0
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "41e0f2b0-e77a-41d8-bdc5-70e0f0b2a3a0",
+  "activeVersionId": "41e0f2b0-e77a-41d8-bdc5-70e0f0b2a3a0",
+  "versionCounter": 90,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-20T22:44:53.936Z",
+      "createdAt": "2026-03-20T22:44:53.936Z",
+      "role": "workflow:owner",
+      "workflowId": "2rMRq0B9ewvd1lBn",
+      "projectId": "1ugGQHoQVF6DXsWx",
+      "project": {
+        "updatedAt": "2025-07-21T19:08:05.727Z",
+        "createdAt": "2025-07-21T19:06:54.563Z",
+        "id": "1ugGQHoQVF6DXsWx",
+        "name": "Felipe De Alba <pipess21@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-21T00:34:13.300Z",
+    "createdAt": "2026-03-21T00:34:13.300Z",
+    "versionId": "41e0f2b0-e77a-41d8-bdc5-70e0f0b2a3a0",
+    "workflowId": "2rMRq0B9ewvd1lBn",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "trigger-manual",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          200,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "path": "syscom-sync-v3",
+          "httpMethod": "POST",
+          "options": {}
+        },
+        "id": "trigger-webhook",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          500
+        ],
+        "webhookId": "syscom-sync-v3"
+      },
+      {
+        "parameters": {
+          "jsCode": "// ============================================================\n// SYNC v4 — Full Catalog Processor (54,391 productos)\n// Uses categoria={id} endpoint for complete coverage\n// Fixes: UOM update error, full 12 categories, batch offset\n// ============================================================\n\nconst ODOO_URL = \"https://ocean-tech-0326.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech-0326\", UID = 2, PWD = \"M1ercole$\";\nconst INCOME_ACCOUNT = 145;\n\n// 12 Syscom categories with their IDs and Odoo mappings\nconst CATS = [\n  { id: 22,    name: \"Videovigilancia\",         categ_id: 4,   expense: 128 },\n  { id: 25,    name: \"Radiocomunicación\",       categ_id: 11,  expense: 132 },\n  { id: 26,    name: \"Redes e IT\",              categ_id: 11,  expense: 132 },\n  { id: 27,    name: \"IoT / GPS / Telemática\",  categ_id: 11,  expense: 132 },\n  { id: 30,    name: \"Energía / Herramientas\",  categ_id: 94,  expense: 143 },\n  { id: 32,    name: \"Automatización e Intrusión\", categ_id: 516, expense: 137 },\n  { id: 37,    name: \"Control de Acceso\",       categ_id: 7,   expense: 131 },\n  { id: 38,    name: \"Detección de Fuego\",      categ_id: 9,   expense: 129 },\n  { id: 65747, name: \"Marketing\",               categ_id: 14,  expense: 128 },\n  { id: 65811, name: \"Cableado Estructurado\",   categ_id: 10,  expense: 133 },\n  { id: 66523, name: \"Audio y Video\",           categ_id: 167, expense: 132 },\n  { id: 66630, name: \"Industria / BMS / Robots\", categ_id: 516, expense: 137 },\n];\n\nconst UOM_MAP = {\n  \"Pieza\": 44, \"Piezas\": 44, \"pieza\": 44, \"pza\": 44, \"Pza\": 44, \"PZA\": 44,\n  \"Unidad\": 27, \"Unidades\": 27, \"Units\": 1, \"unidad\": 27,\n  \"Bobina 100 mts\": 39, \"Bobina 305 mts\": 40, \"Bobina 1000 mts\": 41, \"Bobina 152 mts\": 42,\n  \"Metro\": 5, \"Metros\": 5, \"metro\": 5, \"mts\": 5,\n  \"Rollo\": 39, \"rollo\": 39, \"Par\": 44, \"Juego\": 44, \"Kit\": 44, \"Set\": 44,\n};\n\n// === Helpers ===\nasync function odoo(model, method, args, kwargs = {}) {\n  const resp = await this.helpers.httpRequest({\n    method: \"POST\", url: ODOO_URL, json: true,\n    body: { jsonrpc: \"2.0\", method: \"call\", id: Date.now(),\n      params: { service: \"object\", method: \"execute_kw\",\n        args: [DB, UID, PWD, model, method, args], kwargs } }\n  });\n  if (resp.error) throw new Error(JSON.stringify(resp.error.data || resp.error).substring(0, 500));\n  return resp.result;\n}\n\nasync function imgToBase64(url) {\n  if (!url) return null;\n  try {\n    const resp = await this.helpers.httpRequest({\n      method: \"GET\", url, encoding: \"arraybuffer\",\n      options: { timeout: 15000 }\n    });\n    if (resp && resp.length) return Buffer.from(resp).toString(\"base64\");\n    return null;\n  } catch(e) { return null; }\n}\n\nconst num = (v, d=0) => { const n = Number(v); return Number.isFinite(n) ? n : d; };\n\n// === Read position from staticData ===\nconst sd = $getWorkflowStaticData(\"global\");\nlet catIdx = sd.categoryIndex || 0;\nlet page = sd.page || 1;\nlet offset = sd.offset || 0;\n\n// Initialize counters if not present\nif (!sd.totalCreated) sd.totalCreated = 0;\nif (!sd.totalUpdated) sd.totalUpdated = 0;\nif (!sd.totalErrors) sd.totalErrors = 0;\nif (!sd.totalProcessed) sd.totalProcessed = 0;\n\n// Check if all done\nif (catIdx >= CATS.length) {\n  return [{ json: {\n    _done: true,\n    message: \"Todas las categorías completadas\",\n    totalCreated: sd.totalCreated,\n    totalUpdated: sd.totalUpdated,\n    totalErrors: sd.totalErrors,\n    totalProcessed: sd.totalProcessed\n  }}];\n}\n\nconst cat = CATS[catIdx];\nconst BATCH_SIZE = 30;\n\nconsole.log(\"=== BATCH: cat[\" + catIdx + \"] \" + cat.name + \" (id:\" + cat.id + \") page \" + page + \" offset \" + offset + \" ===\");\n\n// === 1. Get Syscom Token ===\nlet token;\ntry {\n  const tokenResp = await this.helpers.httpRequest({\n    method: \"POST\",\n    url: \"https://developers.syscom.mx/oauth/token\",\n    headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n    body: \"client_id=zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7&client_secret=thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz&grant_type=client_credentials\"\n  });\n  token = tokenResp.access_token;\n} catch(e) {\n  return [{ json: { status: \"error\", error: \"Token failed: \" + e.message, catIdx, page } }];\n}\n\n// === 2. Fetch products from Syscom using categoria={id} ===\nlet allProductos = [];\nlet lastPage = false;\nlet totalPages = 0;\ntry {\n  const url = \"https://developers.syscom.mx/api/v1/productos?categoria=\" + cat.id + \"&page=\" + page + \"&moneda=MXN\";\n  const resp = await this.helpers.httpRequest({\n    method: \"GET\", url,\n    headers: { \"Authorization\": \"Bearer \" + token },\n    json: true,\n    options: { timeout: 30000 }\n  });\n  allProductos = resp.productos || [];\n  totalPages = resp.paginas || 0;\n  if (totalPages > 0 && page >= totalPages) lastPage = true;\n  if (allProductos.length === 0) lastPage = true;\n} catch(e) {\n  // Rate limit or other error — don't advance, retry next time\n  return [{ json: { status: \"error\", error: \"Syscom fetch failed: \" + e.message, catIdx, catName: cat.name, page } }];\n}\n\nif (allProductos.length === 0) {\n  sd.categoryIndex = catIdx + 1;\n  sd.page = 1;\n  sd.offset = 0;\n  return [{ json: { _empty: true, catIdx, catName: cat.name, page, message: \"Sin productos, avanzando\" } }];\n}\n\n// Apply offset and batch limit\nlet productos = allProductos.slice(offset, offset + BATCH_SIZE);\nconst remainingOnPage = allProductos.length - (offset + productos.length);\n\nif (productos.length === 0) {\n  // Offset exceeded products on this page - advance\n  if (lastPage) {\n    sd.categoryIndex = catIdx + 1;\n    sd.page = 1;\n  } else {\n    sd.page = page + 1;\n  }\n  sd.offset = 0;\n  return [{ json: { _empty: true, catIdx, catName: cat.name, page, offset, message: \"Offset exceeded, advancing\" } }];\n}\n\n// === 3. Process each product ===\nconst results = [];\nlet created = 0, updated = 0, errors = 0;\n\nfor (const p of productos) {\n  try {\n    const sku = String(p.modelo || \"\").trim();\n    if (!sku) continue;\n\n    const nombre = String(p.titulo || \"Producto sin nombre\");\n    const costo = num(p.precios?.precio_descuento ?? p.precios?.precio_1 ?? 0);\n    const listPrice = costo > 0 ? (costo * 1.16) / 0.7 : 0;\n    const satKey = String(p.sat_key || \"\");\n    const marca = String(p.marca || \"\");\n    const imgUrl = String(p.img_portada || \"\");\n\n    const uomNombre = p.unidad_de_medida?.nombre || \"Pieza\";\n    const uomId = UOM_MAP[uomNombre] || 44;\n\n    // UNSPSC lookup\n    let unspscId = false;\n    if (satKey && satKey !== \"null\" && satKey !== \"undefined\" && satKey.length >= 4) {\n      try {\n        const sat = await odoo.call(this, \"product.unspsc.code\", \"search_read\",\n          [[[\"code\",\"=\",satKey]]], {fields:[\"id\"], limit:1});\n        if (sat && sat.length) unspscId = sat[0].id;\n      } catch(e) { /* skip UNSPSC if lookup fails */ }\n    }\n\n    // Image\n    let imageB64 = await imgToBase64.call(this, imgUrl);\n\n    // Search existing by default_code OR barcode\n    let existing = await odoo.call(this, \"product.template\", \"search_read\",\n      [[[\"default_code\",\"=\",sku]]], {fields:[\"id\",\"default_code\",\"barcode\"], limit:1});\n    if (!existing || !existing.length) {\n      existing = await odoo.call(this, \"product.template\", \"search_read\",\n        [[[\"barcode\",\"=\",sku]]], {fields:[\"id\",\"default_code\",\"barcode\"], limit:1});\n    }\n\n    let op, prodId;\n\n    if (existing && existing.length) {\n      // === UPDATE existing product ===\n      prodId = existing[0].id;\n      const updateVals = {\n        name: nombre,\n        standard_price: costo,\n        list_price: Math.round(listPrice * 100) / 100,\n        categ_id: cat.categ_id,\n        // NO uom_id on updates — causes \"asientos contables\" error\n        property_account_income_id: INCOME_ACCOUNT,\n        property_account_expense_id: cat.expense,\n        description_sale: marca ? \"Marca: \" + marca : \"\",\n        sale_ok: true,\n        purchase_ok: true,\n      };\n      if (unspscId) updateVals.unspsc_code_id = unspscId;\n      if (imageB64) updateVals.image_1920 = imageB64;\n\n      await odoo.call(this, \"product.template\", \"write\", [[prodId], updateVals]);\n      op = \"update\";\n      updated++;\n      // Free memory\n      imageB64 = null;\n      if (updateVals.image_1920) delete updateVals.image_1920;\n    } else {\n      // === CREATE new product ===\n      const createVals = {\n        name: nombre,\n        default_code: sku,\n        barcode: sku,\n        standard_price: costo,\n        list_price: Math.round(listPrice * 100) / 100,\n        categ_id: cat.categ_id,\n        uom_id: uomId,\n        property_account_income_id: INCOME_ACCOUNT,\n        property_account_expense_id: cat.expense,\n        description_sale: marca ? \"Marca: \" + marca : \"\",\n        sale_ok: true,\n        purchase_ok: true,\n      };\n      if (unspscId) createVals.unspsc_code_id = unspscId;\n      if (imageB64) createVals.image_1920 = imageB64;\n\n      prodId = await odoo.call(this, \"product.template\", \"create\", [createVals]);\n      op = \"create\";\n      created++;\n      // Free memory\n      imageB64 = null;\n      if (createVals.image_1920) delete createVals.image_1920;\n    }\n\n    results.push({ json: { sku, op, prodId, status: \"ok\" } });\n  } catch(err) {\n    errors++;\n    results.push({ json: { sku: p.modelo || \"?\", status: \"error\", error: err.message.substring(0,200) } });\n  }\n}\n\n// === 4. Advance position ===\nif (remainingOnPage > 0) {\n  // More products on this page — advance offset\n  sd.offset = offset + BATCH_SIZE;\n} else if (lastPage) {\n  // Last page of this category — advance to next category\n  sd.categoryIndex = catIdx + 1;\n  sd.page = 1;\n  sd.offset = 0;\n} else {\n  // More pages — advance page\n  sd.page = page + 1;\n  sd.offset = 0;\n}\n\n// Update global counters\nsd.totalCreated += created;\nsd.totalUpdated += updated;\nsd.totalErrors += errors;\nsd.totalProcessed += (created + updated + errors);\n\n// Add summary as first item\nconst summary = {\n  json: {\n    _summary: true,\n    category: cat.name,\n    categoryId: cat.id,\n    categoryIndex: catIdx,\n    page, offset,\n    totalPages,\n    nextCategoryIndex: sd.categoryIndex,\n    nextPage: sd.page,\n    nextOffset: sd.offset,\n    batchSize: productos.length,\n    created, updated, errors,\n    total: created + updated + errors,\n    lastPage,\n    globalTotals: {\n      created: sd.totalCreated,\n      updated: sd.totalUpdated,\n      errors: sd.totalErrors,\n      processed: sd.totalProcessed\n    }\n  }\n};\n\nreturn [summary, ...results];\n"
+        },
+        "id": "sync-batch",
+        "name": "Sync Batch",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          600,
+          400
+        ]
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Sync Batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Sync Batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Felipe De Alba",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-21T00:34:13.345Z",
+        "id": 286,
+        "workflowId": "2rMRq0B9ewvd1lBn",
+        "versionId": "41e0f2b0-e77a-41d8-bdc5-70e0f0b2a3a0",
+        "event": "activated",
+        "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+      },
+      {
+        "createdAt": "2026-03-21T00:34:13.331Z",
+        "id": 285,
+        "workflowId": "2rMRq0B9ewvd1lBn",
+        "versionId": "41e0f2b0-e77a-41d8-bdc5-70e0f0b2a3a0",
+        "event": "deactivated",
+        "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+      }
+    ]
+  }
+}
