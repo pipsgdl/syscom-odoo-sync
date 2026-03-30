@@ -1,0 +1,226 @@
+{
+    "updatedAt": "2026-03-30T17:30:12.681Z",
+    "createdAt": "2026-03-25T17:07:31.927Z",
+    "id": "EOrLx6luVYEXgNOt",
+    "name": "WF4 \u2014 Detector Bajas (dom 2am)",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "cronExpression",
+                            "expression": "0 8 * * 0"
+                        }
+                    ]
+                }
+            },
+            "id": "s1",
+            "name": "Sunday 2am CST",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "detect-bajas",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "w1",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                250,
+                500
+            ],
+            "webhookId": "detect-bajas"
+        },
+        {
+            "parameters": {
+                "jsCode": "// WF4 v2: Detector de Bajas \u2014 semanal\n// Step 1: search all active IDs (cheap, just integers)\n// Step 2: read 10 at a time, check Syscom\n// Step 3: deactivate if not found\nconst ODOO_URL = \"https://ocean-tech.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech\", UID = 2, PWD = \"M1ercole$\";\nconst BATCH = 10;\nconst helpers = this.helpers;\n\nasync function rpc(model,method,args,kw) {\n  if(!kw)kw={};\n  var r=await helpers.httpRequest({method:\"POST\",url:ODOO_URL,json:true,\n    body:{jsonrpc:\"2.0\",method:\"call\",id:Date.now(),\n      params:{service:\"object\",method:\"execute_kw\",args:[DB,UID,PWD,model,method,args],kwargs:kw}}});\n  if(r.error)throw new Error(JSON.stringify(r.error.data||r.error).substring(0,400));\n  return r.result;\n}\n\nasync function getToken() {\n  var r=await helpers.httpRequest({method:\"POST\",url:\"https://developers.syscom.mx/oauth/token\",\n    headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},\n    body:\"client_id=zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7&client_secret=thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz&grant_type=client_credentials\"});\n  return r.access_token;\n}\n\nvar sd=$getWorkflowStaticData(\"global\");\nvar body=($input.all()[0]&&$input.all()[0].json&&$input.all()[0].json.body)||($input.all()[0]&&$input.all()[0].json)||{};\nif(body.action===\"reset\"){Object.keys(sd).forEach(function(k){delete sd[k]});return [{json:{_reset:true}}];}\n\nif(!sd.cycle)sd.cycle=0;if(!sd.checked)sd.checked=0;if(!sd.deact)sd.deact=0;if(!sd.errs)sd.errs=0;if(!sd.bajaList)sd.bajaList=[];\n\n// Step 1: Load all IDs on first run of cycle\nif(!sd.allIds || sd.allIds.length===0) {\n  var allIds = await rpc(\"product.template\",\"search\",[[[\"active\",\"=\",true]]]);\n  sd.allIds = allIds;\n  sd.idxPos = 0;\n  return [{json:{_loaded:true,totalIds:allIds.length}}];\n}\n\nvar pos = sd.idxPos||0;\nif(pos >= sd.allIds.length) {\n  // Cycle complete\n  var r2={_cycleComplete:true,cycle:sd.cycle+1,checked:sd.checked,deactivated:sd.deact,errors:sd.errs,\n    bajas:(sd.bajaList||[]).slice(0,30)};\n  sd.allIds=[];sd.idxPos=0;sd.cycle=(sd.cycle||0)+1;sd.checked=0;sd.deact=0;sd.errs=0;sd.bajaList=[];\n  return [{json:r2}];\n}\n\n// Step 2: Read batch of IDs\nvar batchIds = sd.allIds.slice(pos, pos+BATCH);\nvar products;\ntry {\n  products = await rpc(\"product.template\",\"read\",[batchIds],{fields:[\"id\",\"default_code\",\"name\"]});\n} catch(e) {\n  sd.idxPos = pos+BATCH;\n  return [{json:{status:\"read_error\",error:e.message.substring(0,200)}}];\n}\n\nvar token;\ntry{token=await getToken();}catch(e){return [{json:{status:\"error\",error:\"Token: \"+e.message}}];}\n\nvar deact=0,errs=0;\n\nfor(var i=0;i<products.length;i++){\n  var prod=products[i];\n  var sku=prod.default_code;\n  if(!sku||sku===false){continue;}\n  sd.checked=(sd.checked||0)+1;\n  \n  try{\n    var resp=await helpers.httpRequest({method:\"GET\",\n      url:\"https://developers.syscom.mx/api/v1/productos?busqueda=\"+encodeURIComponent(sku)+\"&moneda=MXN\",\n      headers:{Authorization:\"Bearer \"+token},json:true,options:{timeout:15000}});\n    \n    var found=false;\n    var items=resp.productos||[];\n    for(var j=0;j<items.length;j++){\n      if(items[j].modelo===sku){found=true;break;}\n    }\n    \n    if(!found){\n      await rpc(\"product.template\",\"write\",[[prod.id],{active:false}]);\n      deact++;sd.deact=(sd.deact||0)+1;\n      if((sd.bajaList||[]).length<100){\n        sd.bajaList.push({sku:sku,name:String(prod.name||\"\").substring(0,40)});\n      }\n    }\n  }catch(e){\n    errs++;sd.errs=(sd.errs||0)+1;\n  }\n}\n\nsd.idxPos=pos+BATCH;\n\nreturn [{json:{_summary:true,pos:pos,batch:products.length,deact:deact,errs:errs,\n  global:{checked:sd.checked,deact:sd.deact,errs:sd.errs,remaining:sd.allIds.length-sd.idxPos,pct:Math.round(sd.idxPos*100/sd.allIds.length)}\n}}];\n"
+            },
+            "id": "c1",
+            "name": "Detect Bajas",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                470,
+                400
+            ]
+        }
+    ],
+    "connections": {
+        "Sunday 2am CST": {
+            "main": [
+                [
+                    {
+                        "node": "Detect Bajas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Detect Bajas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "callerPolicy": "workflowsFromSameOwner",
+        "availableInMCP": false
+    },
+    "staticData": {
+        "node:Sunday 2am CST": {
+            "recurrenceRules": []
+        },
+        "global": {}
+    },
+    "meta": null,
+    "pinData": null,
+    "versionId": "a6197948-975e-46e2-b313-1ea6c3283238",
+    "activeVersionId": "a6197948-975e-46e2-b313-1ea6c3283238",
+    "versionCounter": 21,
+    "triggerCount": 2,
+    "shared": [
+        {
+            "updatedAt": "2026-03-25T17:07:31.928Z",
+            "createdAt": "2026-03-25T17:07:31.928Z",
+            "role": "workflow:owner",
+            "workflowId": "EOrLx6luVYEXgNOt",
+            "projectId": "1ugGQHoQVF6DXsWx",
+            "project": {
+                "updatedAt": "2025-07-21T19:08:05.727Z",
+                "createdAt": "2025-07-21T19:06:54.563Z",
+                "id": "1ugGQHoQVF6DXsWx",
+                "name": "Felipe De Alba <pipess21@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        }
+    ],
+    "tags": [],
+    "activeVersion": {
+        "updatedAt": "2026-03-30T17:30:12.682Z",
+        "createdAt": "2026-03-30T17:30:12.682Z",
+        "versionId": "a6197948-975e-46e2-b313-1ea6c3283238",
+        "workflowId": "EOrLx6luVYEXgNOt",
+        "nodes": [
+            {
+                "parameters": {
+                    "rule": {
+                        "interval": [
+                            {
+                                "field": "cronExpression",
+                                "expression": "0 8 * * 0"
+                            }
+                        ]
+                    }
+                },
+                "id": "s1",
+                "name": "Sunday 2am CST",
+                "type": "n8n-nodes-base.scheduleTrigger",
+                "typeVersion": 1.2,
+                "position": [
+                    250,
+                    300
+                ]
+            },
+            {
+                "parameters": {
+                    "httpMethod": "POST",
+                    "path": "detect-bajas",
+                    "responseMode": "lastNode",
+                    "options": {}
+                },
+                "id": "w1",
+                "name": "Webhook",
+                "type": "n8n-nodes-base.webhook",
+                "typeVersion": 2,
+                "position": [
+                    250,
+                    500
+                ],
+                "webhookId": "detect-bajas"
+            },
+            {
+                "parameters": {
+                    "jsCode": "// WF4 v2: Detector de Bajas \u2014 semanal\n// Step 1: search all active IDs (cheap, just integers)\n// Step 2: read 10 at a time, check Syscom\n// Step 3: deactivate if not found\nconst ODOO_URL = \"https://ocean-tech.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech\", UID = 2, PWD = \"M1ercole$\";\nconst BATCH = 10;\nconst helpers = this.helpers;\n\nasync function rpc(model,method,args,kw) {\n  if(!kw)kw={};\n  var r=await helpers.httpRequest({method:\"POST\",url:ODOO_URL,json:true,\n    body:{jsonrpc:\"2.0\",method:\"call\",id:Date.now(),\n      params:{service:\"object\",method:\"execute_kw\",args:[DB,UID,PWD,model,method,args],kwargs:kw}}});\n  if(r.error)throw new Error(JSON.stringify(r.error.data||r.error).substring(0,400));\n  return r.result;\n}\n\nasync function getToken() {\n  var r=await helpers.httpRequest({method:\"POST\",url:\"https://developers.syscom.mx/oauth/token\",\n    headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},\n    body:\"client_id=zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7&client_secret=thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz&grant_type=client_credentials\"});\n  return r.access_token;\n}\n\nvar sd=$getWorkflowStaticData(\"global\");\nvar body=($input.all()[0]&&$input.all()[0].json&&$input.all()[0].json.body)||($input.all()[0]&&$input.all()[0].json)||{};\nif(body.action===\"reset\"){Object.keys(sd).forEach(function(k){delete sd[k]});return [{json:{_reset:true}}];}\n\nif(!sd.cycle)sd.cycle=0;if(!sd.checked)sd.checked=0;if(!sd.deact)sd.deact=0;if(!sd.errs)sd.errs=0;if(!sd.bajaList)sd.bajaList=[];\n\n// Step 1: Load all IDs on first run of cycle\nif(!sd.allIds || sd.allIds.length===0) {\n  var allIds = await rpc(\"product.template\",\"search\",[[[\"active\",\"=\",true]]]);\n  sd.allIds = allIds;\n  sd.idxPos = 0;\n  return [{json:{_loaded:true,totalIds:allIds.length}}];\n}\n\nvar pos = sd.idxPos||0;\nif(pos >= sd.allIds.length) {\n  // Cycle complete\n  var r2={_cycleComplete:true,cycle:sd.cycle+1,checked:sd.checked,deactivated:sd.deact,errors:sd.errs,\n    bajas:(sd.bajaList||[]).slice(0,30)};\n  sd.allIds=[];sd.idxPos=0;sd.cycle=(sd.cycle||0)+1;sd.checked=0;sd.deact=0;sd.errs=0;sd.bajaList=[];\n  return [{json:r2}];\n}\n\n// Step 2: Read batch of IDs\nvar batchIds = sd.allIds.slice(pos, pos+BATCH);\nvar products;\ntry {\n  products = await rpc(\"product.template\",\"read\",[batchIds],{fields:[\"id\",\"default_code\",\"name\"]});\n} catch(e) {\n  sd.idxPos = pos+BATCH;\n  return [{json:{status:\"read_error\",error:e.message.substring(0,200)}}];\n}\n\nvar token;\ntry{token=await getToken();}catch(e){return [{json:{status:\"error\",error:\"Token: \"+e.message}}];}\n\nvar deact=0,errs=0;\n\nfor(var i=0;i<products.length;i++){\n  var prod=products[i];\n  var sku=prod.default_code;\n  if(!sku||sku===false){continue;}\n  sd.checked=(sd.checked||0)+1;\n  \n  try{\n    var resp=await helpers.httpRequest({method:\"GET\",\n      url:\"https://developers.syscom.mx/api/v1/productos?busqueda=\"+encodeURIComponent(sku)+\"&moneda=MXN\",\n      headers:{Authorization:\"Bearer \"+token},json:true,options:{timeout:15000}});\n    \n    var found=false;\n    var items=resp.productos||[];\n    for(var j=0;j<items.length;j++){\n      if(items[j].modelo===sku){found=true;break;}\n    }\n    \n    if(!found){\n      await rpc(\"product.template\",\"write\",[[prod.id],{active:false}]);\n      deact++;sd.deact=(sd.deact||0)+1;\n      if((sd.bajaList||[]).length<100){\n        sd.bajaList.push({sku:sku,name:String(prod.name||\"\").substring(0,40)});\n      }\n    }\n  }catch(e){\n    errs++;sd.errs=(sd.errs||0)+1;\n  }\n}\n\nsd.idxPos=pos+BATCH;\n\nreturn [{json:{_summary:true,pos:pos,batch:products.length,deact:deact,errs:errs,\n  global:{checked:sd.checked,deact:sd.deact,errs:sd.errs,remaining:sd.allIds.length-sd.idxPos,pct:Math.round(sd.idxPos*100/sd.allIds.length)}\n}}];\n"
+                },
+                "id": "c1",
+                "name": "Detect Bajas",
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [
+                    470,
+                    400
+                ]
+            }
+        ],
+        "connections": {
+            "Sunday 2am CST": {
+                "main": [
+                    [
+                        {
+                            "node": "Detect Bajas",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Webhook": {
+                "main": [
+                    [
+                        {
+                            "node": "Detect Bajas",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            }
+        },
+        "authors": "Felipe De Alba",
+        "name": null,
+        "description": null,
+        "autosaved": false,
+        "workflowPublishHistory": [
+            {
+                "createdAt": "2026-03-30T17:30:12.723Z",
+                "id": 374,
+                "workflowId": "EOrLx6luVYEXgNOt",
+                "versionId": "a6197948-975e-46e2-b313-1ea6c3283238",
+                "event": "activated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            },
+            {
+                "createdAt": "2026-03-30T17:30:12.713Z",
+                "id": 373,
+                "workflowId": "EOrLx6luVYEXgNOt",
+                "versionId": "a6197948-975e-46e2-b313-1ea6c3283238",
+                "event": "deactivated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        ]
+    }
+}

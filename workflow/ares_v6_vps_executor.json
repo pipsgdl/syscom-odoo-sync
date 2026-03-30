@@ -1,0 +1,177 @@
+{
+    "updatedAt": "2026-03-23T21:54:19.340Z",
+    "createdAt": "2026-03-23T21:54:19.340Z",
+    "id": "sdk2MjZN6OyrgiuQ",
+    "name": "ARES v6 VPS Executor (cada 30s)",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "seconds",
+                            "secondsInterval": 30
+                        }
+                    ]
+                }
+            },
+            "id": "sched1",
+            "name": "Schedule",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "\n// Ares v6 VPS Executor - triggers sync batch via internal HTTP\nconst SYNC_WF_ID = \"bZL70XeQjzvWb8og\";\nconst N8N_KEY = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwYmJmOWMxNi1iY2QwLTRkZWYtOWJiMy1hZjA0ZjVkNDcyMWQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYjc4MjRjMTAtOTQxMS00ZDhmLTgwNTEtMWYzYzYzNmZmYTBkIiwiaWF0IjoxNzcyMjEyMzYwfQ.oFs4zmce5fdQv-hXHuVdt56pBI9i_24EFk_TBE3WNu8\";\n\n// Check if sync is done first\nconst wfResp = await this.helpers.httpRequest({\n  method: \"GET\",\n  url: \"https://n8n.dealbapropiedades.com.mx/api/v1/workflows/\" + SYNC_WF_ID,\n  headers: { \"X-N8N-API-KEY\": N8N_KEY },\n  json: true\n});\nconst sd = (wfResp.staticData || {}).global || wfResp.staticData || {};\nconst subIdx = sd.subIdx || 0;\n\nif (subIdx >= 1005) {\n  return [{ json: { status: \"COMPLETADO\", message: \"Sync finished. Desactivar este workflow.\" } }];\n}\n\n// Check if there's already a running execution (avoid overlapping)\nconst execs = await this.helpers.httpRequest({\n  method: \"GET\",\n  url: \"https://n8n.dealbapropiedades.com.mx/api/v1/executions?workflowId=\" + SYNC_WF_ID + \"&status=running&limit=1\",\n  headers: { \"X-N8N-API-KEY\": N8N_KEY },\n  json: true\n});\nif (execs.data && execs.data.length > 0) {\n  return [{ json: { status: \"skipped\", reason: \"Execution already running\" } }];\n}\n\n// Trigger sync batch via webhook\ntry {\n  const result = await this.helpers.httpRequest({\n    method: \"POST\",\n    url: \"https://n8n.dealbapropiedades.com.mx/webhook/syscom-sync-v6\",\n    headers: { \"Content-Type\": \"application/json\" },\n    body: \"{}\",\n    json: true,\n    options: { timeout: 120000 }\n  });\n  \n  // Extract summary\n  let summary = result;\n  if (Array.isArray(result)) summary = result[0];\n  \n  const g = summary.global || {};\n  return [{ json: {\n    status: \"ok\",\n    subIdx: summary.subIdx,\n    created: summary.created,\n    updated: summary.updated,\n    errors: summary.errors,\n    globalCreated: g.created,\n    globalProcessed: g.processed,\n    pct: g.pct\n  }}];\n} catch(e) {\n  return [{ json: { status: \"error\", error: e.message.substring(0, 300) } }];\n}\n"
+            },
+            "id": "exec1",
+            "name": "Trigger Sync",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                470,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Schedule": {
+            "main": [
+                [
+                    {
+                        "node": "Trigger Sync",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "callerPolicy": "workflowsFromSameOwner",
+        "availableInMCP": false
+    },
+    "staticData": {
+        "node:Schedule": {
+            "recurrenceRules": []
+        }
+    },
+    "meta": null,
+    "pinData": null,
+    "versionId": "dec1cf66-c8d1-4b0d-9ec3-7628e477ce01",
+    "activeVersionId": "dec1cf66-c8d1-4b0d-9ec3-7628e477ce01",
+    "versionCounter": 11,
+    "triggerCount": 1,
+    "shared": [
+        {
+            "updatedAt": "2026-03-23T21:54:19.382Z",
+            "createdAt": "2026-03-23T21:54:19.382Z",
+            "role": "workflow:owner",
+            "workflowId": "sdk2MjZN6OyrgiuQ",
+            "projectId": "1ugGQHoQVF6DXsWx",
+            "project": {
+                "updatedAt": "2025-07-21T19:08:05.727Z",
+                "createdAt": "2025-07-21T19:06:54.563Z",
+                "id": "1ugGQHoQVF6DXsWx",
+                "name": "Felipe De Alba <pipess21@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        }
+    ],
+    "tags": [],
+    "activeVersion": {
+        "updatedAt": "2026-03-23T21:54:19.397Z",
+        "createdAt": "2026-03-23T21:54:19.397Z",
+        "versionId": "dec1cf66-c8d1-4b0d-9ec3-7628e477ce01",
+        "workflowId": "sdk2MjZN6OyrgiuQ",
+        "nodes": [
+            {
+                "parameters": {
+                    "rule": {
+                        "interval": [
+                            {
+                                "field": "seconds",
+                                "secondsInterval": 30
+                            }
+                        ]
+                    }
+                },
+                "id": "sched1",
+                "name": "Schedule",
+                "type": "n8n-nodes-base.scheduleTrigger",
+                "typeVersion": 1.2,
+                "position": [
+                    250,
+                    300
+                ]
+            },
+            {
+                "parameters": {
+                    "jsCode": "\n// Ares v6 VPS Executor - triggers sync batch via internal HTTP\nconst SYNC_WF_ID = \"bZL70XeQjzvWb8og\";\nconst N8N_KEY = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwYmJmOWMxNi1iY2QwLTRkZWYtOWJiMy1hZjA0ZjVkNDcyMWQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYjc4MjRjMTAtOTQxMS00ZDhmLTgwNTEtMWYzYzYzNmZmYTBkIiwiaWF0IjoxNzcyMjEyMzYwfQ.oFs4zmce5fdQv-hXHuVdt56pBI9i_24EFk_TBE3WNu8\";\n\n// Check if sync is done first\nconst wfResp = await this.helpers.httpRequest({\n  method: \"GET\",\n  url: \"https://n8n.dealbapropiedades.com.mx/api/v1/workflows/\" + SYNC_WF_ID,\n  headers: { \"X-N8N-API-KEY\": N8N_KEY },\n  json: true\n});\nconst sd = (wfResp.staticData || {}).global || wfResp.staticData || {};\nconst subIdx = sd.subIdx || 0;\n\nif (subIdx >= 1005) {\n  return [{ json: { status: \"COMPLETADO\", message: \"Sync finished. Desactivar este workflow.\" } }];\n}\n\n// Check if there's already a running execution (avoid overlapping)\nconst execs = await this.helpers.httpRequest({\n  method: \"GET\",\n  url: \"https://n8n.dealbapropiedades.com.mx/api/v1/executions?workflowId=\" + SYNC_WF_ID + \"&status=running&limit=1\",\n  headers: { \"X-N8N-API-KEY\": N8N_KEY },\n  json: true\n});\nif (execs.data && execs.data.length > 0) {\n  return [{ json: { status: \"skipped\", reason: \"Execution already running\" } }];\n}\n\n// Trigger sync batch via webhook\ntry {\n  const result = await this.helpers.httpRequest({\n    method: \"POST\",\n    url: \"https://n8n.dealbapropiedades.com.mx/webhook/syscom-sync-v6\",\n    headers: { \"Content-Type\": \"application/json\" },\n    body: \"{}\",\n    json: true,\n    options: { timeout: 120000 }\n  });\n  \n  // Extract summary\n  let summary = result;\n  if (Array.isArray(result)) summary = result[0];\n  \n  const g = summary.global || {};\n  return [{ json: {\n    status: \"ok\",\n    subIdx: summary.subIdx,\n    created: summary.created,\n    updated: summary.updated,\n    errors: summary.errors,\n    globalCreated: g.created,\n    globalProcessed: g.processed,\n    pct: g.pct\n  }}];\n} catch(e) {\n  return [{ json: { status: \"error\", error: e.message.substring(0, 300) } }];\n}\n"
+                },
+                "id": "exec1",
+                "name": "Trigger Sync",
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [
+                    470,
+                    300
+                ]
+            }
+        ],
+        "connections": {
+            "Schedule": {
+                "main": [
+                    [
+                        {
+                            "node": "Trigger Sync",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            }
+        },
+        "authors": "Felipe De Alba",
+        "name": null,
+        "description": null,
+        "autosaved": false,
+        "workflowPublishHistory": [
+            {
+                "createdAt": "2026-03-23T21:54:19.718Z",
+                "id": 322,
+                "workflowId": "sdk2MjZN6OyrgiuQ",
+                "versionId": "dec1cf66-c8d1-4b0d-9ec3-7628e477ce01",
+                "event": "activated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            },
+            {
+                "createdAt": "2026-03-25T21:39:01.283Z",
+                "id": 344,
+                "workflowId": "sdk2MjZN6OyrgiuQ",
+                "versionId": "dec1cf66-c8d1-4b0d-9ec3-7628e477ce01",
+                "event": "activated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            },
+            {
+                "createdAt": "2026-03-25T16:19:00.054Z",
+                "id": 333,
+                "workflowId": "sdk2MjZN6OyrgiuQ",
+                "versionId": "dec1cf66-c8d1-4b0d-9ec3-7628e477ce01",
+                "event": "deactivated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        ]
+    }
+}

@@ -1,0 +1,1206 @@
+{
+    "updatedAt": "2026-03-30T17:30:18.256Z",
+    "createdAt": "2026-03-25T17:05:07.744Z",
+    "id": "atlvmnV2n9Gr4KME",
+    "name": "WF2 \u2014 Monitor Promos Syscom (cada 4h)",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours",
+                            "hoursInterval": 4
+                        }
+                    ]
+                }
+            },
+            "id": "s1",
+            "name": "Every 4h",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "monitor-promos",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "w1",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                250,
+                500
+            ],
+            "webhookId": "monitor-promos"
+        },
+        {
+            "parameters": {
+                "jsCode": "// WF2: Monitor de Promociones Syscom \u2014 cada 4h\n// Scans priority categories for products with special pricing\nconst ODOO_URL = \"https://ocean-tech.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech\", UID = 2, PWD = \"M1ercole$\";\nconst helpers = this.helpers;\nconst BATCH = 30;\n\nconst CAT_MAP = {\n  22:{categ_id:4,expense:128,name:\"Videovigilancia\"},\n  37:{categ_id:7,expense:131,name:\"Control Acceso\"},\n  38:{categ_id:9,expense:129,name:\"Det. Fuego\"},\n  26:{categ_id:11,expense:132,name:\"Redes\"},\n  32:{categ_id:516,expense:137,name:\"Automatizacion\"},\n  30:{categ_id:94,expense:143,name:\"Energia\"}\n};\n\nconst SUBS = [[\"1295\", 22], [\"1299\", 22], [\"1301\", 22], [\"1310\", 22], [\"1420\", 22], [\"1421\", 22], [\"2294\", 22], [\"3054\", 22], [\"65804\", 22], [\"65867\", 22], [\"65868\", 22], [\"65869\", 22], [\"65925\", 22], [\"1302\", 22], [\"2975\", 22], [\"2976\", 22], [\"66011\", 22], [\"66012\", 22], [\"66013\", 22], [\"66014\", 22], [\"66040\", 22], [\"66169\", 22], [\"66170\", 22], [\"1320\", 22], [\"1321\", 22], [\"1323\", 22], [\"1324\", 22], [\"1325\", 22], [\"1326\", 22], [\"1379\", 22], [\"1383\", 22], [\"2672\", 22], [\"65610\", 22], [\"65851\", 22], [\"65870\", 22], [\"65940\", 22], [\"66149\", 22], [\"225\", 22], [\"1349\", 22], [\"1350\", 22], [\"1365\", 22], [\"1965\", 22], [\"1976\", 22], [\"3024\", 22], [\"65977\", 22], [\"66015\", 22], [\"66016\", 22], [\"66018\", 22], [\"66238\", 22], [\"66375\", 22], [\"66377\", 22], [\"1354\", 22], [\"1355\", 22], [\"1356\", 22], [\"1380\", 22], [\"2910\", 22], [\"1410\", 22], [\"1411\", 22], [\"1412\", 22], [\"1413\", 22], [\"1414\", 22], [\"65958\", 22], [\"66299\", 22], [\"2809\", 22], [\"65775\", 22], [\"65776\", 22], [\"65777\", 22], [\"65778\", 22], [\"65779\", 22], [\"65850\", 22], [\"65975\", 22], [\"65976\", 22], [\"66255\", 22], [\"3020\", 22], [\"3021\", 22], [\"3022\", 22], [\"3023\", 22], [\"65665\", 22], [\"65810\", 22], [\"66490\", 22], [\"66491\", 22], [\"66492\", 22], [\"1340\", 22], [\"65964\", 22], [\"65965\", 22], [\"65966\", 22], [\"65967\", 22], [\"65973\", 22], [\"66268\", 22], [\"66332\", 22], [\"66479\", 22], [\"66739\", 22], [\"65969\", 22], [\"65970\", 22], [\"65971\", 22], [\"65972\", 22], [\"65983\", 22], [\"65984\", 22], [\"65985\", 22], [\"65987\", 22], [\"65988\", 22], [\"65990\", 22], [\"65992\", 22], [\"66004\", 22], [\"66005\", 22], [\"66684\", 22], [\"66738\", 22], [\"66370\", 22], [\"66473\", 22], [\"66474\", 22], [\"66758\", 22], [\"2888\", 26], [\"1915\", 26], [\"1918\", 26], [\"1926\", 26], [\"1927\", 26], [\"1928\", 26], [\"2915\", 26], [\"3045\", 26], [\"65609\", 26], [\"66167\", 26], [\"66314\", 26], [\"66318\", 26], [\"3092\", 26], [\"3094\", 26], [\"66029\", 26], [\"66031\", 26], [\"66032\", 26], [\"66033\", 26], [\"66035\", 26], [\"66036\", 26], [\"66037\", 26], [\"66039\", 26], [\"66060\", 26], [\"65893\", 26], [\"65894\", 26], [\"65895\", 26], [\"65896\", 26], [\"65959\", 26], [\"2470\", 26], [\"2472\", 26], [\"2474\", 26], [\"2477\", 26], [\"2478\", 26], [\"2479\", 26], [\"2675\", 26], [\"3097\", 26], [\"65668\", 26], [\"2977\", 26], [\"2978\", 26], [\"2979\", 26], [\"65621\", 26], [\"65622\", 26], [\"65635\", 26], [\"65760\", 26], [\"3016\", 26], [\"3017\", 26], [\"3018\", 26], [\"3019\", 26], [\"3047\", 26], [\"66174\", 26], [\"66194\", 26], [\"66278\", 26], [\"65881\", 26], [\"65882\", 26], [\"65883\", 26], [\"65884\", 26], [\"65953\", 26], [\"65885\", 26], [\"65886\", 26], [\"65954\", 26], [\"65887\", 26], [\"65888\", 26], [\"65889\", 26], [\"65890\", 26], [\"65892\", 26], [\"66067\", 26], [\"66178\", 26], [\"65919\", 26], [\"65920\", 26], [\"66177\", 26], [\"66106\", 26], [\"66107\", 26], [\"66108\", 26], [\"66109\", 26], [\"66110\", 26], [\"66267\", 26], [\"66747\", 26], [\"66748\", 26], [\"66757\", 26], [\"66664\", 26], [\"66665\", 26], [\"66666\", 26], [\"66667\", 26], [\"66668\", 26], [\"66669\", 26], [\"66670\", 26], [\"66671\", 26], [\"66759\", 26], [\"66760\", 26], [\"66761\", 26], [\"66673\", 26], [\"66674\", 26], [\"66675\", 26], [\"66676\", 26], [\"66677\", 26], [\"66678\", 26], [\"66679\", 26], [\"66681\", 26], [\"66682\", 26], [\"66683\", 26], [\"66405\", 30], [\"66406\", 30], [\"66407\", 30], [\"66408\", 30], [\"66502\", 30], [\"66410\", 30], [\"66412\", 30], [\"66413\", 30], [\"66414\", 30], [\"66415\", 30], [\"66416\", 30], [\"66417\", 30], [\"66419\", 30], [\"66420\", 30], [\"66468\", 30], [\"66501\", 30], [\"66686\", 30], [\"66687\", 30], [\"66688\", 30], [\"66689\", 30], [\"66690\", 30], [\"66718\", 30], [\"66422\", 30], [\"66423\", 30], [\"66469\", 30], [\"66725\", 30], [\"66726\", 30], [\"66727\", 30], [\"66728\", 30], [\"66425\", 30], [\"66426\", 30], [\"66427\", 30], [\"66428\", 30], [\"66429\", 30], [\"66430\", 30], [\"66431\", 30], [\"66432\", 30], [\"66433\", 30], [\"66435\", 30], [\"66436\", 30], [\"66438\", 30], [\"66439\", 30], [\"66440\", 30], [\"66493\", 30], [\"66494\", 30], [\"66716\", 30], [\"66735\", 30], [\"66736\", 30], [\"66737\", 30], [\"66443\", 30], [\"66444\", 30], [\"66445\", 30], [\"66446\", 30], [\"66694\", 30], [\"66695\", 30], [\"66696\", 30], [\"66448\", 30], [\"66449\", 30], [\"66450\", 30], [\"66711\", 30], [\"66452\", 30], [\"66455\", 30], [\"66500\", 30], [\"66503\", 30], [\"66724\", 30], [\"66749\", 30], [\"66750\", 30], [\"66751\", 30], [\"66752\", 30], [\"66753\", 30], [\"66754\", 30], [\"66755\", 30], [\"66766\", 30], [\"66767\", 30], [\"66768\", 30], [\"66458\", 30], [\"66459\", 30], [\"66460\", 30], [\"66461\", 30], [\"66462\", 30], [\"66463\", 30], [\"66464\", 30], [\"66465\", 30], [\"66466\", 30], [\"66467\", 30], [\"66489\", 30], [\"66471\", 30], [\"66472\", 30], [\"66496\", 30], [\"66497\", 30], [\"66498\", 30], [\"66499\", 30], [\"66692\", 30], [\"66693\", 30], [\"1632\", 32], [\"1634\", 32], [\"1636\", 32], [\"1637\", 32], [\"1638\", 32], [\"1639\", 32], [\"1640\", 32], [\"1641\", 32], [\"65960\", 32], [\"2924\", 32], [\"2330\", 32], [\"2331\", 32], [\"2333\", 32], [\"2334\", 32], [\"2335\", 32], [\"2336\", 32], [\"2345\", 32], [\"2346\", 32], [\"2347\", 32], [\"2348\", 32], [\"2350\", 32], [\"2351\", 32], [\"2395\", 32], [\"369\", 32], [\"2354\", 32], [\"2355\", 32], [\"2356\", 32], [\"2357\", 32], [\"2358\", 32], [\"2359\", 32], [\"2360\", 32], [\"2361\", 32], [\"2362\", 32], [\"2363\", 32], [\"2364\", 32], [\"2392\", 32], [\"2393\", 32], [\"2394\", 32], [\"2401\", 32], [\"66147\", 32], [\"66252\", 32], [\"2366\", 32], [\"2673\", 32], [\"65936\", 32], [\"2368\", 32], [\"2369\", 32], [\"2370\", 32], [\"2371\", 32], [\"3025\", 32], [\"3026\", 32], [\"3027\", 32], [\"3028\", 32], [\"3038\", 32], [\"2402\", 32], [\"2403\", 32], [\"2404\", 32], [\"2405\", 32], [\"65864\", 32], [\"65927\", 32], [\"66254\", 32], [\"66713\", 32], [\"2669\", 32], [\"2670\", 32], [\"2773\", 32], [\"2902\", 32], [\"2903\", 32], [\"65781\", 32], [\"65873\", 32], [\"65874\", 32], [\"65875\", 32], [\"65876\", 32], [\"66028\", 32], [\"66207\", 32], [\"66208\", 32], [\"66209\", 32], [\"66210\", 32], [\"66211\", 32], [\"66213\", 32], [\"66214\", 32], [\"66216\", 32], [\"66235\", 32], [\"66301\", 32], [\"66315\", 32], [\"65537\", 32], [\"65732\", 32], [\"65733\", 32], [\"65734\", 32], [\"65735\", 32], [\"65935\", 32], [\"66329\", 32], [\"65863\", 32], [\"66215\", 32], [\"66274\", 32], [\"66731\", 32], [\"66026\", 32], [\"66285\", 32], [\"66286\", 32], [\"66287\", 32], [\"66343\", 32], [\"66372\", 32], [\"66373\", 32], [\"66400\", 32], [\"66478\", 32], [\"66704\", 32], [\"66600\", 32], [\"66601\", 32], [\"66602\", 32], [\"66615\", 32], [\"66616\", 32], [\"66617\", 32], [\"66618\", 32], [\"66628\", 32], [\"66629\", 32], [\"2520\", 37], [\"2521\", 37], [\"2522\", 37], [\"2523\", 37], [\"2524\", 37], [\"2527\", 37], [\"2884\", 37], [\"2885\", 37], [\"2939\", 37], [\"3115\", 37], [\"66141\", 37], [\"2936\", 37], [\"3001\", 37], [\"3002\", 37], [\"3003\", 37], [\"3004\", 37], [\"3005\", 37], [\"3006\", 37], [\"66234\", 37], [\"2539\", 37], [\"2553\", 37], [\"2554\", 37], [\"2940\", 37], [\"2941\", 37], [\"65669\", 37], [\"2568\", 37], [\"66093\", 37], [\"66094\", 37], [\"2574\", 37], [\"2578\", 37], [\"2581\", 37], [\"2625\", 37], [\"2588\", 37], [\"2589\", 37], [\"2590\", 37], [\"2591\", 37], [\"66241\", 37], [\"2611\", 37], [\"2612\", 37], [\"65763\", 37], [\"65974\", 37], [\"66192\", 37], [\"66193\", 37], [\"2617\", 37], [\"2618\", 37], [\"2620\", 37], [\"2769\", 37], [\"66136\", 37], [\"66137\", 37], [\"66138\", 37], [\"66139\", 37], [\"66140\", 37], [\"2774\", 37], [\"2775\", 37], [\"2776\", 37], [\"2777\", 37], [\"2778\", 37], [\"2779\", 37], [\"65952\", 37], [\"66300\", 37], [\"2890\", 37], [\"2892\", 37], [\"2893\", 37], [\"2925\", 37], [\"2926\", 37], [\"2927\", 37], [\"2928\", 37], [\"2929\", 37], [\"2938\", 37], [\"65684\", 37], [\"66066\", 37], [\"66068\", 37], [\"66086\", 37], [\"66087\", 37], [\"3048\", 37], [\"3049\", 37], [\"3050\", 37], [\"3051\", 37], [\"3116\", 37], [\"3117\", 37], [\"3118\", 37], [\"3119\", 37], [\"65933\", 37], [\"65673\", 37], [\"65674\", 37], [\"65924\", 37], [\"65724\", 37], [\"65946\", 37], [\"65947\", 37], [\"65948\", 37], [\"65949\", 37], [\"65978\", 37], [\"66135\", 37], [\"66181\", 37], [\"66242\", 37], [\"66308\", 37], [\"66062\", 37], [\"66063\", 37], [\"66064\", 37], [\"66065\", 37], [\"66095\", 37], [\"66245\", 37], [\"66246\", 37], [\"66247\", 37], [\"66248\", 37], [\"66249\", 37], [\"66250\", 37], [\"66251\", 37], [\"2641\", 38], [\"66186\", 38], [\"66187\", 38], [\"2645\", 38], [\"66183\", 38], [\"66184\", 38], [\"2648\", 38], [\"2649\", 38], [\"2650\", 38], [\"2651\", 38], [\"65663\", 38], [\"66182\", 38], [\"66312\", 38], [\"2662\", 38], [\"2663\", 38], [\"66481\", 38], [\"2664\", 38], [\"2772\", 38], [\"2805\", 38], [\"2806\", 38], [\"2807\", 38], [\"2897\", 38], [\"2898\", 38], [\"2911\", 38], [\"66402\", 38], [\"66403\", 38], [\"66482\", 38], [\"66708\", 38], [\"66807\", 38], [\"3014\", 38], [\"65905\", 38], [\"65906\", 38], [\"65907\", 38], [\"65535\", 38], [\"65727\", 38], [\"65728\", 38], [\"65730\", 38], [\"66185\", 38], [\"65853\", 38], [\"65854\", 38], [\"65856\", 38], [\"65857\", 38], [\"65858\", 38], [\"65859\", 38], [\"65861\", 38], [\"65956\", 38], [\"66396\", 38], [\"66706\", 38], [\"66707\", 38], [\"66719\", 38], [\"66720\", 38], [\"66743\", 38]];\n\nasync function rpc(model,method,args,kw) {\n  if (!kw) kw = {};\n  var r = await helpers.httpRequest({method:\"POST\",url:ODOO_URL,json:true,\n    body:{jsonrpc:\"2.0\",method:\"call\",id:Date.now(),\n      params:{service:\"object\",method:\"execute_kw\",args:[DB,UID,PWD,model,method,args],kwargs:kw}}});\n  if (r.error) throw new Error(JSON.stringify(r.error.data||r.error).substring(0,400));\n  return r.result;\n}\n\nasync function getToken() {\n  var r = await helpers.httpRequest({method:\"POST\",url:\"https://developers.syscom.mx/oauth/token\",\n    headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},\n    body:\"client_id=zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7&client_secret=thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz&grant_type=client_credentials\"});\n  return r.access_token;\n}\n\nvar num = function(v,d){if(d===undefined)d=0;var n=Number(v);return Number.isFinite(n)?n:d;};\nvar sd = $getWorkflowStaticData(\"global\");\nvar body = ($input.all()[0] && $input.all()[0].json && $input.all()[0].json.body)||($input.all()[0] && $input.all()[0].json)||{};\n\nif (body.action===\"reset\") { Object.keys(sd).forEach(function(k){delete sd[k]}); return [{json:{_reset:true}}]; }\nif (body.action===\"status\") { return [{json:{subIdx:sd.subIdx||0,pagina:sd.pagina||1,cycle:sd.cycle||0,promos:sd.promos||0,scanned:sd.scanned||0,promosFound:(sd.promoList||[]).length}}]; }\n\nvar subIdx = sd.subIdx||0, pagina = sd.pagina||1;\nif (!sd.cycle) sd.cycle=0;\nif (!sd.promos) sd.promos=0;\nif (!sd.scanned) sd.scanned=0;\nif (!sd.promoList) sd.promoList=[];\n\nif (subIdx>=SUBS.length) {\n  // Cycle complete \u2014 build email with promos found\n  var promoList = sd.promoList||[];\n  var summary = {_cycleComplete:true,cycle:sd.cycle+1,scanned:sd.scanned,promosFound:promoList.length};\n  \n  // Build HTML for email\n  if (promoList.length > 0) {\n    var rows = \"\";\n    for (var i=0;i<Math.min(promoList.length,30);i++) {\n      var pr = promoList[i];\n      var bg = i%2===1?' style=\"background:#f5f5f5\"':'';\n      rows += '<tr'+bg+'><td style=\"padding:5px;font-size:12px\">'+pr.sku+'</td><td style=\"padding:5px;font-size:12px\">'+pr.name.substring(0,35)+'</td><td style=\"padding:5px;text-align:right;font-size:12px;text-decoration:line-through;color:#999\">$'+pr.normal.toLocaleString()+'</td><td style=\"padding:5px;text-align:right;font-size:12px;color:#c62828;font-weight:bold\">$'+pr.promo.toLocaleString()+'</td><td style=\"padding:5px;text-align:center;font-size:12px;color:#2e7d32;font-weight:bold\">-'+pr.pct+'%</td><td style=\"padding:5px;text-align:right;font-size:12px\">'+pr.stock+'</td></tr>';\n    }\n    summary.emailSubject = \"PROMO ALERT: \" + promoList.length + \" productos en promocion en Syscom\";\n    summary.emailHtml = '<div style=\"font-family:Arial;max-width:700px;margin:0 auto\"><div style=\"background:#c62828;padding:20px;border-radius:12px 12px 0 0;text-align:center\"><h1 style=\"color:white;margin:0;font-size:20px\">ALERTA DE PROMOCIONES</h1><p style=\"color:#ffcdd2;margin:5px 0 0;font-size:13px\">'+promoList.length+' productos detectados | Ciclo #'+(sd.cycle+1)+'</p></div><div style=\"background:#fff;padding:15px;border:1px solid #dee2e6\"><table style=\"width:100%;border-collapse:collapse\"><tr style=\"background:#ffebee\"><th style=\"padding:6px;text-align:left;font-size:11px\">SKU</th><th style=\"padding:6px;text-align:left;font-size:11px\">Producto</th><th style=\"padding:6px;text-align:right;font-size:11px\">Normal</th><th style=\"padding:6px;text-align:right;font-size:11px\">PROMO</th><th style=\"padding:6px;text-align:center;font-size:11px\">Desc</th><th style=\"padding:6px;text-align:right;font-size:11px\">Stock</th></tr>'+rows+'</table></div><div style=\"background:#1a1a2e;color:#90caf9;padding:10px;border-radius:0 0 12px 12px;text-align:center;font-size:10px\"><p style=\"margin:2px 0\">Ocean Tech | Monitor Promos v1 | '+new Date().toISOString().substring(0,16)+'</p></div></div>';\n  }\n  \n  sd.subIdx=0;sd.pagina=1;sd.cycle=(sd.cycle||0)+1;sd.promos=0;sd.scanned=0;sd.promoList=[];\n  return [{json:summary}];\n}\n\nvar syscomSubId = SUBS[subIdx][0];\nvar mainCatId = SUBS[subIdx][1];\nvar token;\ntry { token = await getToken(); } catch(e) { return [{json:{status:\"error\",error:\"Token: \"+e.message}}]; }\n\nvar productos=[], lastPage=false;\ntry {\n  var resp = await helpers.httpRequest({method:\"GET\",\n    url:\"https://developers.syscom.mx/api/v1/productos?categoria=\"+syscomSubId+\"&pagina=\"+pagina+\"&moneda=MXN\",\n    headers:{Authorization:\"Bearer \"+token},json:true,options:{timeout:30000}});\n  productos = resp.productos||[];\n  var totalPages = resp.paginas||0;\n  if (totalPages>0 && pagina>=totalPages) lastPage=true;\n  if (!productos.length) lastPage=true;\n} catch(e) {\n  sd.subIdx=subIdx+1;sd.pagina=1;\n  return [{json:{status:\"skip\",subIdx:subIdx}}];\n}\n\nif (!productos.length) { sd.subIdx=subIdx+1;sd.pagina=1; return [{json:{_empty:true,subIdx:subIdx}}]; }\n\n// Scan ALL products on this page for promos (no batch limit needed, just reading)\nvar promosFound = 0;\n\nfor (var i=0;i<productos.length;i++) {\n  var p = productos[i];\n  sd.scanned = (sd.scanned||0)+1;\n  \n  var precioNormal = num(p.precios && p.precios.precio_1, 0);\n  var precioDesc = num(p.precios && p.precios.precio_descuento, 0);\n  var precioEspecial = num(p.precios && p.precios.precio_especial, 0);\n  var stock = num(p.total_existencia, 0);\n  var sku = String(p.modelo||\"\");\n  \n  // Detect promo: precio_especial exists and is lower than normal, and has stock\n  var isPromo = false;\n  var promoPrice = 0;\n  var normalPrice = precioNormal || precioDesc;\n  \n  if (precioEspecial > 0 && precioEspecial < normalPrice && stock > 0) {\n    isPromo = true;\n    promoPrice = precioEspecial;\n  } else if (precioDesc > 0 && precioDesc < precioNormal * 0.9 && stock > 0) {\n    // >10% discount from list price\n    isPromo = true;\n    promoPrice = precioDesc;\n    normalPrice = precioNormal;\n  }\n  \n  if (isPromo && normalPrice > 0) {\n    var pctOff = Math.round((1 - promoPrice/normalPrice) * 100);\n    if (pctOff >= 5) { // At least 5% off\n      // Check if we already have this SKU in promoList (dedup)\n      var already = false;\n      for (var j=0;j<(sd.promoList||[]).length;j++) {\n        if (sd.promoList[j].sku === sku) { already=true; break; }\n      }\n      if (!already && (sd.promoList||[]).length < 100) {\n        sd.promoList.push({\n          sku: sku,\n          name: String(p.titulo||\"\").substring(0,50),\n          normal: Math.round(normalPrice),\n          promo: Math.round(promoPrice),\n          pct: pctOff,\n          stock: stock,\n          cat: (CAT_MAP[mainCatId]||{}).name||\"?\"\n        });\n        promosFound++;\n        sd.promos = (sd.promos||0)+1;\n      }\n    }\n  }\n}\n\n// Advance\nif (lastPage) { sd.subIdx=subIdx+1; sd.pagina=1; }\nelse { sd.pagina=pagina+1; }\n\nreturn [{json:{_summary:true,subIdx:subIdx,pagina:pagina,scanned:productos.length,promosFound:promosFound,\n  global:{sub:sd.subIdx,scanned:sd.scanned,promos:sd.promos,cycle:sd.cycle,promoListSize:(sd.promoList||[]).length}\n}}];\n"
+            },
+            "id": "c1",
+            "name": "Scan Promos",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                470,
+                400
+            ]
+        },
+        {
+            "parameters": {
+                "fromEmail": "pipess21@gmail.com",
+                "toEmail": "pipess21@gmail.com",
+                "subject": "={{ $json.emailSubject || 'Monitor Promos - Sin promos nuevas' }}",
+                "emailType": "html",
+                "html": "={{ $json.emailHtml || '<p>Ciclo completado sin promos significativas.</p>' }}",
+                "options": {}
+            },
+            "id": "e1",
+            "name": "Send Email",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 2.1,
+            "position": [
+                690,
+                400
+            ],
+            "credentials": {
+                "smtp": {
+                    "id": "8Sh1bZ6TghVIY8JW",
+                    "name": "Gmail SMTP - pipess21"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Every 4h": {
+            "main": [
+                [
+                    {
+                        "node": "Scan Promos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Scan Promos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Scan Promos": {
+            "main": [
+                [
+                    {
+                        "node": "Send Email",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "callerPolicy": "workflowsFromSameOwner",
+        "availableInMCP": false
+    },
+    "staticData": {
+        "node:Every 4h": {
+            "recurrenceRules": [
+                8
+            ]
+        },
+        "global": {
+            "cycle": 0,
+            "promos": 100,
+            "scanned": 220,
+            "promoList": [
+                {
+                    "sku": "JR-52",
+                    "name": "Adaptador Macho Tipo Jack de 3.5 mm (0.14 Pulgadas",
+                    "normal": 18,
+                    "promo": 9,
+                    "pct": 50,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "JR-53",
+                    "name": "Adaptador Hembra Tipo Jack de 3.5 mm Polarizado de",
+                    "normal": 16,
+                    "promo": 10,
+                    "pct": 35,
+                    "stock": 515,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL-2610",
+                    "name": "Recept\u00e1culo de Media Vuelta Industrial 30 A 125 V ",
+                    "normal": 672,
+                    "promo": 620,
+                    "pct": 8,
+                    "stock": 110,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "AC-CORD-1.8M",
+                    "name": "Cable de Alimentaci\u00f3n El\u00e9ctrica para 120-240 Vca /",
+                    "normal": 123,
+                    "promo": 74,
+                    "pct": 40,
+                    "stock": 356,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL-2611",
+                    "name": "Clavija Industrial con Bloqueo de Media Vuelta / 3",
+                    "normal": 826,
+                    "promo": 693,
+                    "pct": 16,
+                    "stock": 84,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "71-12",
+                    "name": "Caja de 305 Metros (1000 Pies) de Cable Blindado d",
+                    "normal": 13341,
+                    "promo": 11473,
+                    "pct": 14,
+                    "stock": 45,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "221-413",
+                    "name": "Borne de Conexi\u00f3n con Palancas / 3 Conductores / C",
+                    "normal": 11,
+                    "promo": 7,
+                    "pct": 36,
+                    "stock": 3,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "ACCORDL-1M",
+                    "name": "Cable de Alimentaci\u00f3n El\u00e9ctrica para 120-240 Vca /",
+                    "normal": 78,
+                    "promo": 62,
+                    "pct": 20,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "WZ12",
+                    "name": "Bobina de 305 Metros (1000 Pies) de Cable 8 Conduc",
+                    "normal": 15069,
+                    "promo": 12960,
+                    "pct": 14,
+                    "stock": 12,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-308-RED/100",
+                    "name": "Cable El\u00e9ctrico de Cobre Recubierto THW-LS Calibre",
+                    "normal": 2774,
+                    "promo": 2385,
+                    "pct": 14,
+                    "stock": 15,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "ACCESS-CABLE/500",
+                    "name": "Bobina de 152 Metros (500 Pies) de Cable Compuesto",
+                    "normal": 5594,
+                    "promo": 5122,
+                    "pct": 8,
+                    "stock": 73,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "221-613",
+                    "name": "Borna de Conexi\u00f3n con Palancas / 3 Conductores / C",
+                    "normal": 20,
+                    "promo": 13,
+                    "pct": 36,
+                    "stock": 137,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL-2321",
+                    "name": "Clavija Industrial con Bloqueo de Media Vuelta / 2",
+                    "normal": 702,
+                    "promo": 534,
+                    "pct": 24,
+                    "stock": 11,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "ACCORDM-1.8M",
+                    "name": "Cable de Alimentaci\u00f3n El\u00e9ctrica para 120-240 Vca /",
+                    "normal": 144,
+                    "promo": 91,
+                    "pct": 37,
+                    "stock": 76,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "101521985",
+                    "name": "Cable de Corriente 110 VCA / Conector Tipo 8",
+                    "normal": 47,
+                    "promo": 30,
+                    "pct": 36,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "ACCORD2-1.8M",
+                    "name": "Cable de Alimentaci\u00f3n El\u00e9ctrica para 120-240 Vca /",
+                    "normal": 109,
+                    "promo": 96,
+                    "pct": 12,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "221-612",
+                    "name": "Borne de Conexi\u00f3n con Palancas / Serie 221 / 6 mm\u00b2",
+                    "normal": 19,
+                    "promo": 12,
+                    "pct": 36,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-328-WHT/100",
+                    "name": "Cable El\u00e9ctrico 18 AWG Color Blanco, Conductor de ",
+                    "normal": 870,
+                    "promo": 703,
+                    "pct": 19,
+                    "stock": 4,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "221-615",
+                    "name": "Conector El\u00e9ctrico / Borna de Conexi\u00f3n con Palanca",
+                    "normal": 37,
+                    "promo": 24,
+                    "pct": 36,
+                    "stock": 40,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "JR53X",
+                    "name": "Adaptador Tipo Jack de 3.5 mm Hembra Polarizado de",
+                    "normal": 23,
+                    "promo": 17,
+                    "pct": 28,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "DC-CORD1",
+                    "name": "Cable de Alimentaci\u00f3n con Conector Macho a Bloque ",
+                    "normal": 16,
+                    "promo": 11,
+                    "pct": 33,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "CBRNF1P30D",
+                    "name": "Cables en Paquete Dual / Cable Rojo y Negro / 30 c",
+                    "normal": 87,
+                    "promo": 74,
+                    "pct": 15,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "DSPLUGEXT",
+                    "name": "Protector para Exterior IP68 / Adaptador para el C",
+                    "normal": 31,
+                    "promo": 17,
+                    "pct": 45,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PAQ48JR52",
+                    "name": "KIT DE 48 CONECTORES MACHO JR52 PARA ALIMENTACI\u00d3N ",
+                    "normal": 865,
+                    "promo": 411,
+                    "pct": 52,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-308-BLK/100",
+                    "name": "( SLY308 ) Cable El\u00e9ctrico de Cobre Recubierto THW",
+                    "normal": 2774,
+                    "promo": 2385,
+                    "pct": 14,
+                    "stock": 24,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL2310",
+                    "name": "Recept\u00e1culo de Media Vuelta Industrial para Empotr",
+                    "normal": 728,
+                    "promo": 554,
+                    "pct": 24,
+                    "stock": 7,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "DC-CORDF",
+                    "name": "Cable con Conector Hembra, Alimentaci\u00f3n para Vcc c",
+                    "normal": 9,
+                    "promo": 5,
+                    "pct": 42,
+                    "stock": 384,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-308-WHT/100",
+                    "name": "Cable El\u00e9ctrico de Cobre Recubierto THW-LS Calibre",
+                    "normal": 2774,
+                    "promo": 2385,
+                    "pct": 14,
+                    "stock": 7,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-308-GRN/100",
+                    "name": "(SLY311) Cable El\u00e9ctrico de Cobre Recubierto THW-L",
+                    "normal": 2774,
+                    "promo": 2385,
+                    "pct": 14,
+                    "stock": 9,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-304-GRN/100",
+                    "name": "Cable El\u00e9ctrico 10 AWG Color Verde, Conductor de C",
+                    "normal": 4396,
+                    "promo": 3780,
+                    "pct": 14,
+                    "stock": 2,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PC02",
+                    "name": "Cable 2 x 18 AWG / Tipo POT / 100 Metros (328.08 P",
+                    "normal": 1599,
+                    "promo": 1376,
+                    "pct": 14,
+                    "stock": 19,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-312-BLK/100",
+                    "name": "Cable El\u00e9ctrico de Cobre Recubierto THW-LS Calibre",
+                    "normal": 1975,
+                    "promo": 1620,
+                    "pct": 18,
+                    "stock": 444,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "JRF51",
+                    "name": "Cable con Conector Jack Hembra 3.5 mm con 2 Salida",
+                    "normal": 37,
+                    "promo": 17,
+                    "pct": 54,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-IG23-20",
+                    "name": "Recept\u00e1culo Sencillo de Media Vuelta / 20 A 250 V ",
+                    "normal": 813,
+                    "promo": 567,
+                    "pct": 30,
+                    "stock": 29,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL-2813",
+                    "name": "Conector Industrial con Bloqueo de Media Vuelta / ",
+                    "normal": 1863,
+                    "promo": 1417,
+                    "pct": 24,
+                    "stock": 3,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-304-WHT/100",
+                    "name": "( SSLU13 ) Cable El\u00e9ctrico 10 AWG Color Blanco, Co",
+                    "normal": 4396,
+                    "promo": 3780,
+                    "pct": 14,
+                    "stock": 2,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-312-GRN/100",
+                    "name": "Cable El\u00e9ctrico de Cobre Recubierto THW-LS Calibre",
+                    "normal": 1975,
+                    "promo": 1699,
+                    "pct": 14,
+                    "stock": 8,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-316-BLK/100",
+                    "name": "Cable El\u00e9ctrico 16 AWG Color Negro, Conductor de C",
+                    "normal": 1288,
+                    "promo": 1056,
+                    "pct": 18,
+                    "stock": 24,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PINGER",
+                    "name": "Kit de Prueba para Transmisi\u00f3n Inal\u00e1mbrica en Camp",
+                    "normal": 2008,
+                    "promo": 1758,
+                    "pct": 12,
+                    "stock": 99,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL-2513",
+                    "name": "Conector Industrial con Bloqueo de Media Vuelta / ",
+                    "normal": 1638,
+                    "promo": 1511,
+                    "pct": 8,
+                    "stock": 22,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-304-RED/100",
+                    "name": "Cable El\u00e9ctrico 10 AWG Color Rojo, Conductor de Co",
+                    "normal": 4396,
+                    "promo": 3780,
+                    "pct": 14,
+                    "stock": 19,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-312-WHT/100",
+                    "name": "Cable El\u00e9ctrico de Cobre Recubierto THW-LS Calibre",
+                    "normal": 1975,
+                    "promo": 1699,
+                    "pct": 14,
+                    "stock": 1,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY308WHT",
+                    "name": "Cable El\u00e9ctrico de Cobre Recubierto THW-LS Calibre",
+                    "normal": 29,
+                    "promo": 18,
+                    "pct": 36,
+                    "stock": 38,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "DS-2PW001-B",
+                    "name": "Cable de Corriente 110 VCA / Conector Tipo 8",
+                    "normal": 46,
+                    "promo": 30,
+                    "pct": 36,
+                    "stock": 3,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "HUB-HBL-2810-ST",
+                    "name": "Recept\u00e1culo de Media Vuelta Industrial 30 A 120/20",
+                    "normal": 993,
+                    "promo": 624,
+                    "pct": 37,
+                    "stock": 15,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PAQ48JR53",
+                    "name": "KIT D/48 JUMPER HEMBRA P/12VCC",
+                    "normal": 694,
+                    "promo": 439,
+                    "pct": 37,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SLY-304-RED",
+                    "name": "Cable 10 AWG Color Rojo, Conductor de Cobre Suave ",
+                    "normal": 38,
+                    "promo": 24,
+                    "pct": 36,
+                    "stock": 5,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "KBM",
+                    "name": "Conector a Presi\u00f3n para Cable Tipo RG6, RG59, RG17",
+                    "normal": 51,
+                    "promo": 32,
+                    "pct": 37,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PROCAP",
+                    "name": "Pinza Profesional para CaP System",
+                    "normal": 2120,
+                    "promo": 1889,
+                    "pct": 11,
+                    "stock": 3,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "CAPCOLA",
+                    "name": "Conector a Presi\u00f3n Azul / Para Conectores BNC / In",
+                    "normal": 18,
+                    "promo": 6,
+                    "pct": 67,
+                    "stock": 287,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "CAP",
+                    "name": "Conector a Presi\u00f3n Negro / Para Conectores BNC / I",
+                    "normal": 18,
+                    "promo": 8,
+                    "pct": 57,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "CAPCOLR",
+                    "name": "Conector a Presi\u00f3n Rojo / Para Conectores BNC / In",
+                    "normal": 18,
+                    "promo": 7,
+                    "pct": 60,
+                    "stock": 396,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "RFB-1711-1",
+                    "name": "Conector BNC Hembra a 75 Ohm, Montaje Vertical en ",
+                    "normal": 70,
+                    "promo": 29,
+                    "pct": 59,
+                    "stock": 1,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "10519",
+                    "name": "Cable de Audio 2 RCA Macho a 2 RCA Macho / 3 Metro",
+                    "normal": 190,
+                    "promo": 177,
+                    "pct": 7,
+                    "stock": 392,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "JR-R591",
+                    "name": "Adaptador RCA Macho Tipo Jack Polarizado / Termina",
+                    "normal": 11,
+                    "promo": 6,
+                    "pct": 42,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "485D",
+                    "name": "Convertidor de RS232 a RS485",
+                    "normal": 93,
+                    "promo": 79,
+                    "pct": 15,
+                    "stock": 281,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "TT-RG-02",
+                    "name": "Adaptador en L\u00ednea para 75 Ohm, de Conector BNC Ma",
+                    "normal": 8,
+                    "promo": 5,
+                    "pct": 39,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "TT-RG-03",
+                    "name": "Adaptador en L\u00ednea para 75 Ohm, de Conector BNC He",
+                    "normal": 8,
+                    "promo": 4,
+                    "pct": 50,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "TT-RG-01",
+                    "name": "Adaptador en L\u00ednea para 75 Ohm, de Conector BNC Ma",
+                    "normal": 13,
+                    "promo": 6,
+                    "pct": 49,
+                    "stock": 107,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "JR58",
+                    "name": "Adaptador para Audio y Video de 3.5 mm con Termina",
+                    "normal": 75,
+                    "promo": 28,
+                    "pct": 63,
+                    "stock": 39,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "TT2RCA2M",
+                    "name": "Cable RCA Macho a Macho de 2 Metros de Longitud / ",
+                    "normal": 54,
+                    "promo": 34,
+                    "pct": 37,
+                    "stock": 4,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "TT2001A",
+                    "name": "Balun Extensor de Audio Analogo Estereo RCA a RJ45",
+                    "normal": 253,
+                    "promo": 162,
+                    "pct": 36,
+                    "stock": 504,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "10512",
+                    "name": "Cable Adaptador de 3.5mm Macho a 2 RCA Macho / 3 M",
+                    "normal": 219,
+                    "promo": 137,
+                    "pct": 38,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-AUDIO",
+                    "name": "Cable para Audio Profesional de 2 Conductores Cali",
+                    "normal": 2067,
+                    "promo": 1837,
+                    "pct": 11,
+                    "stock": 315,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "10513",
+                    "name": "Cable Adaptador de 3.5mm Macho a 2 RCA Macho / 5 M",
+                    "normal": 168,
+                    "promo": 151,
+                    "pct": 10,
+                    "stock": 179,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-AUDIO-S",
+                    "name": "Cable para Audio Profesional Calibre 18 en 2 Hilos",
+                    "normal": 2453,
+                    "promo": 2180,
+                    "pct": 11,
+                    "stock": 337,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1602/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 16AWG 2 Conducto",
+                    "normal": 3833,
+                    "promo": 3450,
+                    "pct": 10,
+                    "stock": 501,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-FOH-4K-15M",
+                    "name": "Cable HDMI de Fibra \u00d3ptica de 15 Metros (49.21 Pie",
+                    "normal": 1127,
+                    "promo": 882,
+                    "pct": 22,
+                    "stock": 501,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-RH-4K-10M",
+                    "name": "Cable HDMI de 10 Metros (32.81 Pies) | Alta Defini",
+                    "normal": 425,
+                    "promo": 399,
+                    "pct": 6,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1402/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 14AWG 2 Conducto",
+                    "normal": 5424,
+                    "promo": 4773,
+                    "pct": 12,
+                    "stock": 458,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1802/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 18AWG 2 Conducto",
+                    "normal": 2650,
+                    "promo": 2385,
+                    "pct": 10,
+                    "stock": 229,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "92-62",
+                    "name": "Bobina de Cable de 152 Metros (500 Pies) de 6 x 20",
+                    "normal": 7859,
+                    "promo": 6759,
+                    "pct": 14,
+                    "stock": 292,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1602-EXT/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 16AWG 2 Conducto",
+                    "normal": 3505,
+                    "promo": 2215,
+                    "pct": 37,
+                    "stock": 152,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1402-EXT/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 14AWG 2 Conducto",
+                    "normal": 5587,
+                    "promo": 5028,
+                    "pct": 10,
+                    "stock": 158,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-FOH-8K-10M",
+                    "name": "Cable HDMI de Fibra \u00d3ptica de 10 Metros (32.81 Pie",
+                    "normal": 1914,
+                    "promo": 1437,
+                    "pct": 25,
+                    "stock": 110,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-PH-4K-5M",
+                    "name": "Cable HDMI de 5 Metros (16.40 Pies) | Alta Definic",
+                    "normal": 208,
+                    "promo": 175,
+                    "pct": 16,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-PH-4K-1M",
+                    "name": "Cable HDMI de 1 Metro (3.28 Pies) | Alta Definici\u00f3",
+                    "normal": 106,
+                    "promo": 86,
+                    "pct": 18,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "9266",
+                    "name": "Bobina de 305 Metros (1000 Pies) 2 X 16 AWG Blinda",
+                    "normal": 11405,
+                    "promo": 9809,
+                    "pct": 14,
+                    "stock": 17,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1202-EXT/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 12AWG 2 Conducto",
+                    "normal": 7922,
+                    "promo": 6972,
+                    "pct": 12,
+                    "stock": 96,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-1202/500",
+                    "name": "Bobina de 152 Metros (500 Pies) / 12AWG 2 Conducto",
+                    "normal": 8176,
+                    "promo": 7195,
+                    "pct": 12,
+                    "stock": 231,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-FOH-8K-15M",
+                    "name": "Cable HDMI de Fibra \u00d3ptica de 15 Metros (49.21 Pie",
+                    "normal": 2036,
+                    "promo": 1509,
+                    "pct": 26,
+                    "stock": 274,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-RH-4K-1M",
+                    "name": "Cable HDMI de 1 Metro (3.28 Pies) | Alta Definici\u00f3",
+                    "normal": 135,
+                    "promo": 85,
+                    "pct": 37,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-RH-4K-1.8M",
+                    "name": "Cable HDMI de 1.8 Metros (5.91 Pies) | Alta Defini",
+                    "normal": 141,
+                    "promo": 101,
+                    "pct": 29,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-RH-4K-3M",
+                    "name": "Cable HDMI de 3 Metros (9.84 Pies) | Alta Definici",
+                    "normal": 176,
+                    "promo": 131,
+                    "pct": 26,
+                    "stock": 520,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-PH-4K-1.8M",
+                    "name": "Cable HDMI de 1.8 Metros (5.91 Pies) | Alta Defini",
+                    "normal": 122,
+                    "promo": 103,
+                    "pct": 16,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-PH-4K-3M",
+                    "name": "Cable HDMI de 3 Metros (9.84 Pies) | Alta Definici",
+                    "normal": 157,
+                    "promo": 130,
+                    "pct": 17,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "9263/1000",
+                    "name": "Bobina de 305 Metros (1000 Pies) de Cable / 2 x 16",
+                    "normal": 10866,
+                    "promo": 9344,
+                    "pct": 14,
+                    "stock": 24,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-90H-1M",
+                    "name": "Cable HDMI \u00c1ngulo 90\u00b0 | 1 Metro (3.28 Pies) | Alta",
+                    "normal": 122,
+                    "promo": 101,
+                    "pct": 17,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "9239/1000",
+                    "name": "Caja de 305 Metros (1000 Pies) / 4 X 22 AWG / Blin",
+                    "normal": 7494,
+                    "promo": 6445,
+                    "pct": 14,
+                    "stock": 23,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-90H-2M",
+                    "name": "Cable HDMI \u00c1ngulo 90\u00b0 | 2 Metros (6.56 Pies) | Alt",
+                    "normal": 152,
+                    "promo": 124,
+                    "pct": 18,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "EP-90H-3M",
+                    "name": "Cable HDMI \u00c1ngulo 90\u00b0 | 3 Metros (9.84 Pies) | Alt",
+                    "normal": 179,
+                    "promo": 146,
+                    "pct": 18,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "SKUSBA-V",
+                    "name": "Dispositivo de Bloqueo Smartkeeper, Para Puertos U",
+                    "normal": 239,
+                    "promo": 195,
+                    "pct": 18,
+                    "stock": 143,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "CHFHD1",
+                    "name": "Cable HDMI de 1.8m | Alta Definici\u00f3n | Longitud |\u00a0",
+                    "normal": 199,
+                    "promo": 183,
+                    "pct": 8,
+                    "stock": 2,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT-5-EXT/500",
+                    "name": "Bobina de Cable de 152 Metros (499 Pies), Cat5e, F",
+                    "normal": 2526,
+                    "promo": 1978,
+                    "pct": 22,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT5-EXT-LITE",
+                    "name": "Bobina de Cable de 305 Metros (1000 Pies), Cat5e, ",
+                    "normal": 4571,
+                    "promo": 3581,
+                    "pct": 22,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT-5E-LITE",
+                    "name": "Bobina de Cable de 305 Metros (1000 Pies), Cat5e, ",
+                    "normal": 3828,
+                    "promo": 2999,
+                    "pct": 22,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT-5E-LITE/100M",
+                    "name": "Bobina de Cable de 100 Metros (328.08 Pies), Cat5e",
+                    "normal": 1262,
+                    "promo": 989,
+                    "pct": 22,
+                    "stock": 201,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT5-EXT-LITEW",
+                    "name": "Bobina de Cable UTP Cat5e para Exterior en Color B",
+                    "normal": 4571,
+                    "promo": 3581,
+                    "pct": 22,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT-5-EXT",
+                    "name": "Bobina de Cable de 305 Metros (1000 Pies), Cat5e, ",
+                    "normal": 5051,
+                    "promo": 3957,
+                    "pct": 22,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                },
+                {
+                    "sku": "PRO-CAT-5E/100M",
+                    "name": "Cable Cat5e de Alto Rendimiento, con Certificacion",
+                    "normal": 1331,
+                    "promo": 1043,
+                    "pct": 22,
+                    "stock": 500,
+                    "cat": "Videovigilancia"
+                }
+            ],
+            "pagina": 2,
+            "subIdx": 4
+        }
+    },
+    "meta": null,
+    "pinData": null,
+    "versionId": "fd6b392c-8097-4298-9849-36133c8d52cf",
+    "activeVersionId": "fd6b392c-8097-4298-9849-36133c8d52cf",
+    "versionCounter": 69,
+    "triggerCount": 2,
+    "shared": [
+        {
+            "updatedAt": "2026-03-25T17:05:07.747Z",
+            "createdAt": "2026-03-25T17:05:07.747Z",
+            "role": "workflow:owner",
+            "workflowId": "atlvmnV2n9Gr4KME",
+            "projectId": "1ugGQHoQVF6DXsWx",
+            "project": {
+                "updatedAt": "2025-07-21T19:08:05.727Z",
+                "createdAt": "2025-07-21T19:06:54.563Z",
+                "id": "1ugGQHoQVF6DXsWx",
+                "name": "Felipe De Alba <pipess21@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        }
+    ],
+    "tags": [],
+    "activeVersion": {
+        "updatedAt": "2026-03-30T17:30:18.257Z",
+        "createdAt": "2026-03-30T17:30:18.257Z",
+        "versionId": "fd6b392c-8097-4298-9849-36133c8d52cf",
+        "workflowId": "atlvmnV2n9Gr4KME",
+        "nodes": [
+            {
+                "parameters": {
+                    "rule": {
+                        "interval": [
+                            {
+                                "field": "hours",
+                                "hoursInterval": 4
+                            }
+                        ]
+                    }
+                },
+                "id": "s1",
+                "name": "Every 4h",
+                "type": "n8n-nodes-base.scheduleTrigger",
+                "typeVersion": 1.2,
+                "position": [
+                    250,
+                    300
+                ]
+            },
+            {
+                "parameters": {
+                    "httpMethod": "POST",
+                    "path": "monitor-promos",
+                    "responseMode": "lastNode",
+                    "options": {}
+                },
+                "id": "w1",
+                "name": "Webhook",
+                "type": "n8n-nodes-base.webhook",
+                "typeVersion": 2,
+                "position": [
+                    250,
+                    500
+                ],
+                "webhookId": "monitor-promos"
+            },
+            {
+                "parameters": {
+                    "jsCode": "// WF2: Monitor de Promociones Syscom \u2014 cada 4h\n// Scans priority categories for products with special pricing\nconst ODOO_URL = \"https://ocean-tech.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech\", UID = 2, PWD = \"M1ercole$\";\nconst helpers = this.helpers;\nconst BATCH = 30;\n\nconst CAT_MAP = {\n  22:{categ_id:4,expense:128,name:\"Videovigilancia\"},\n  37:{categ_id:7,expense:131,name:\"Control Acceso\"},\n  38:{categ_id:9,expense:129,name:\"Det. Fuego\"},\n  26:{categ_id:11,expense:132,name:\"Redes\"},\n  32:{categ_id:516,expense:137,name:\"Automatizacion\"},\n  30:{categ_id:94,expense:143,name:\"Energia\"}\n};\n\nconst SUBS = [[\"1295\", 22], [\"1299\", 22], [\"1301\", 22], [\"1310\", 22], [\"1420\", 22], [\"1421\", 22], [\"2294\", 22], [\"3054\", 22], [\"65804\", 22], [\"65867\", 22], [\"65868\", 22], [\"65869\", 22], [\"65925\", 22], [\"1302\", 22], [\"2975\", 22], [\"2976\", 22], [\"66011\", 22], [\"66012\", 22], [\"66013\", 22], [\"66014\", 22], [\"66040\", 22], [\"66169\", 22], [\"66170\", 22], [\"1320\", 22], [\"1321\", 22], [\"1323\", 22], [\"1324\", 22], [\"1325\", 22], [\"1326\", 22], [\"1379\", 22], [\"1383\", 22], [\"2672\", 22], [\"65610\", 22], [\"65851\", 22], [\"65870\", 22], [\"65940\", 22], [\"66149\", 22], [\"225\", 22], [\"1349\", 22], [\"1350\", 22], [\"1365\", 22], [\"1965\", 22], [\"1976\", 22], [\"3024\", 22], [\"65977\", 22], [\"66015\", 22], [\"66016\", 22], [\"66018\", 22], [\"66238\", 22], [\"66375\", 22], [\"66377\", 22], [\"1354\", 22], [\"1355\", 22], [\"1356\", 22], [\"1380\", 22], [\"2910\", 22], [\"1410\", 22], [\"1411\", 22], [\"1412\", 22], [\"1413\", 22], [\"1414\", 22], [\"65958\", 22], [\"66299\", 22], [\"2809\", 22], [\"65775\", 22], [\"65776\", 22], [\"65777\", 22], [\"65778\", 22], [\"65779\", 22], [\"65850\", 22], [\"65975\", 22], [\"65976\", 22], [\"66255\", 22], [\"3020\", 22], [\"3021\", 22], [\"3022\", 22], [\"3023\", 22], [\"65665\", 22], [\"65810\", 22], [\"66490\", 22], [\"66491\", 22], [\"66492\", 22], [\"1340\", 22], [\"65964\", 22], [\"65965\", 22], [\"65966\", 22], [\"65967\", 22], [\"65973\", 22], [\"66268\", 22], [\"66332\", 22], [\"66479\", 22], [\"66739\", 22], [\"65969\", 22], [\"65970\", 22], [\"65971\", 22], [\"65972\", 22], [\"65983\", 22], [\"65984\", 22], [\"65985\", 22], [\"65987\", 22], [\"65988\", 22], [\"65990\", 22], [\"65992\", 22], [\"66004\", 22], [\"66005\", 22], [\"66684\", 22], [\"66738\", 22], [\"66370\", 22], [\"66473\", 22], [\"66474\", 22], [\"66758\", 22], [\"2888\", 26], [\"1915\", 26], [\"1918\", 26], [\"1926\", 26], [\"1927\", 26], [\"1928\", 26], [\"2915\", 26], [\"3045\", 26], [\"65609\", 26], [\"66167\", 26], [\"66314\", 26], [\"66318\", 26], [\"3092\", 26], [\"3094\", 26], [\"66029\", 26], [\"66031\", 26], [\"66032\", 26], [\"66033\", 26], [\"66035\", 26], [\"66036\", 26], [\"66037\", 26], [\"66039\", 26], [\"66060\", 26], [\"65893\", 26], [\"65894\", 26], [\"65895\", 26], [\"65896\", 26], [\"65959\", 26], [\"2470\", 26], [\"2472\", 26], [\"2474\", 26], [\"2477\", 26], [\"2478\", 26], [\"2479\", 26], [\"2675\", 26], [\"3097\", 26], [\"65668\", 26], [\"2977\", 26], [\"2978\", 26], [\"2979\", 26], [\"65621\", 26], [\"65622\", 26], [\"65635\", 26], [\"65760\", 26], [\"3016\", 26], [\"3017\", 26], [\"3018\", 26], [\"3019\", 26], [\"3047\", 26], [\"66174\", 26], [\"66194\", 26], [\"66278\", 26], [\"65881\", 26], [\"65882\", 26], [\"65883\", 26], [\"65884\", 26], [\"65953\", 26], [\"65885\", 26], [\"65886\", 26], [\"65954\", 26], [\"65887\", 26], [\"65888\", 26], [\"65889\", 26], [\"65890\", 26], [\"65892\", 26], [\"66067\", 26], [\"66178\", 26], [\"65919\", 26], [\"65920\", 26], [\"66177\", 26], [\"66106\", 26], [\"66107\", 26], [\"66108\", 26], [\"66109\", 26], [\"66110\", 26], [\"66267\", 26], [\"66747\", 26], [\"66748\", 26], [\"66757\", 26], [\"66664\", 26], [\"66665\", 26], [\"66666\", 26], [\"66667\", 26], [\"66668\", 26], [\"66669\", 26], [\"66670\", 26], [\"66671\", 26], [\"66759\", 26], [\"66760\", 26], [\"66761\", 26], [\"66673\", 26], [\"66674\", 26], [\"66675\", 26], [\"66676\", 26], [\"66677\", 26], [\"66678\", 26], [\"66679\", 26], [\"66681\", 26], [\"66682\", 26], [\"66683\", 26], [\"66405\", 30], [\"66406\", 30], [\"66407\", 30], [\"66408\", 30], [\"66502\", 30], [\"66410\", 30], [\"66412\", 30], [\"66413\", 30], [\"66414\", 30], [\"66415\", 30], [\"66416\", 30], [\"66417\", 30], [\"66419\", 30], [\"66420\", 30], [\"66468\", 30], [\"66501\", 30], [\"66686\", 30], [\"66687\", 30], [\"66688\", 30], [\"66689\", 30], [\"66690\", 30], [\"66718\", 30], [\"66422\", 30], [\"66423\", 30], [\"66469\", 30], [\"66725\", 30], [\"66726\", 30], [\"66727\", 30], [\"66728\", 30], [\"66425\", 30], [\"66426\", 30], [\"66427\", 30], [\"66428\", 30], [\"66429\", 30], [\"66430\", 30], [\"66431\", 30], [\"66432\", 30], [\"66433\", 30], [\"66435\", 30], [\"66436\", 30], [\"66438\", 30], [\"66439\", 30], [\"66440\", 30], [\"66493\", 30], [\"66494\", 30], [\"66716\", 30], [\"66735\", 30], [\"66736\", 30], [\"66737\", 30], [\"66443\", 30], [\"66444\", 30], [\"66445\", 30], [\"66446\", 30], [\"66694\", 30], [\"66695\", 30], [\"66696\", 30], [\"66448\", 30], [\"66449\", 30], [\"66450\", 30], [\"66711\", 30], [\"66452\", 30], [\"66455\", 30], [\"66500\", 30], [\"66503\", 30], [\"66724\", 30], [\"66749\", 30], [\"66750\", 30], [\"66751\", 30], [\"66752\", 30], [\"66753\", 30], [\"66754\", 30], [\"66755\", 30], [\"66766\", 30], [\"66767\", 30], [\"66768\", 30], [\"66458\", 30], [\"66459\", 30], [\"66460\", 30], [\"66461\", 30], [\"66462\", 30], [\"66463\", 30], [\"66464\", 30], [\"66465\", 30], [\"66466\", 30], [\"66467\", 30], [\"66489\", 30], [\"66471\", 30], [\"66472\", 30], [\"66496\", 30], [\"66497\", 30], [\"66498\", 30], [\"66499\", 30], [\"66692\", 30], [\"66693\", 30], [\"1632\", 32], [\"1634\", 32], [\"1636\", 32], [\"1637\", 32], [\"1638\", 32], [\"1639\", 32], [\"1640\", 32], [\"1641\", 32], [\"65960\", 32], [\"2924\", 32], [\"2330\", 32], [\"2331\", 32], [\"2333\", 32], [\"2334\", 32], [\"2335\", 32], [\"2336\", 32], [\"2345\", 32], [\"2346\", 32], [\"2347\", 32], [\"2348\", 32], [\"2350\", 32], [\"2351\", 32], [\"2395\", 32], [\"369\", 32], [\"2354\", 32], [\"2355\", 32], [\"2356\", 32], [\"2357\", 32], [\"2358\", 32], [\"2359\", 32], [\"2360\", 32], [\"2361\", 32], [\"2362\", 32], [\"2363\", 32], [\"2364\", 32], [\"2392\", 32], [\"2393\", 32], [\"2394\", 32], [\"2401\", 32], [\"66147\", 32], [\"66252\", 32], [\"2366\", 32], [\"2673\", 32], [\"65936\", 32], [\"2368\", 32], [\"2369\", 32], [\"2370\", 32], [\"2371\", 32], [\"3025\", 32], [\"3026\", 32], [\"3027\", 32], [\"3028\", 32], [\"3038\", 32], [\"2402\", 32], [\"2403\", 32], [\"2404\", 32], [\"2405\", 32], [\"65864\", 32], [\"65927\", 32], [\"66254\", 32], [\"66713\", 32], [\"2669\", 32], [\"2670\", 32], [\"2773\", 32], [\"2902\", 32], [\"2903\", 32], [\"65781\", 32], [\"65873\", 32], [\"65874\", 32], [\"65875\", 32], [\"65876\", 32], [\"66028\", 32], [\"66207\", 32], [\"66208\", 32], [\"66209\", 32], [\"66210\", 32], [\"66211\", 32], [\"66213\", 32], [\"66214\", 32], [\"66216\", 32], [\"66235\", 32], [\"66301\", 32], [\"66315\", 32], [\"65537\", 32], [\"65732\", 32], [\"65733\", 32], [\"65734\", 32], [\"65735\", 32], [\"65935\", 32], [\"66329\", 32], [\"65863\", 32], [\"66215\", 32], [\"66274\", 32], [\"66731\", 32], [\"66026\", 32], [\"66285\", 32], [\"66286\", 32], [\"66287\", 32], [\"66343\", 32], [\"66372\", 32], [\"66373\", 32], [\"66400\", 32], [\"66478\", 32], [\"66704\", 32], [\"66600\", 32], [\"66601\", 32], [\"66602\", 32], [\"66615\", 32], [\"66616\", 32], [\"66617\", 32], [\"66618\", 32], [\"66628\", 32], [\"66629\", 32], [\"2520\", 37], [\"2521\", 37], [\"2522\", 37], [\"2523\", 37], [\"2524\", 37], [\"2527\", 37], [\"2884\", 37], [\"2885\", 37], [\"2939\", 37], [\"3115\", 37], [\"66141\", 37], [\"2936\", 37], [\"3001\", 37], [\"3002\", 37], [\"3003\", 37], [\"3004\", 37], [\"3005\", 37], [\"3006\", 37], [\"66234\", 37], [\"2539\", 37], [\"2553\", 37], [\"2554\", 37], [\"2940\", 37], [\"2941\", 37], [\"65669\", 37], [\"2568\", 37], [\"66093\", 37], [\"66094\", 37], [\"2574\", 37], [\"2578\", 37], [\"2581\", 37], [\"2625\", 37], [\"2588\", 37], [\"2589\", 37], [\"2590\", 37], [\"2591\", 37], [\"66241\", 37], [\"2611\", 37], [\"2612\", 37], [\"65763\", 37], [\"65974\", 37], [\"66192\", 37], [\"66193\", 37], [\"2617\", 37], [\"2618\", 37], [\"2620\", 37], [\"2769\", 37], [\"66136\", 37], [\"66137\", 37], [\"66138\", 37], [\"66139\", 37], [\"66140\", 37], [\"2774\", 37], [\"2775\", 37], [\"2776\", 37], [\"2777\", 37], [\"2778\", 37], [\"2779\", 37], [\"65952\", 37], [\"66300\", 37], [\"2890\", 37], [\"2892\", 37], [\"2893\", 37], [\"2925\", 37], [\"2926\", 37], [\"2927\", 37], [\"2928\", 37], [\"2929\", 37], [\"2938\", 37], [\"65684\", 37], [\"66066\", 37], [\"66068\", 37], [\"66086\", 37], [\"66087\", 37], [\"3048\", 37], [\"3049\", 37], [\"3050\", 37], [\"3051\", 37], [\"3116\", 37], [\"3117\", 37], [\"3118\", 37], [\"3119\", 37], [\"65933\", 37], [\"65673\", 37], [\"65674\", 37], [\"65924\", 37], [\"65724\", 37], [\"65946\", 37], [\"65947\", 37], [\"65948\", 37], [\"65949\", 37], [\"65978\", 37], [\"66135\", 37], [\"66181\", 37], [\"66242\", 37], [\"66308\", 37], [\"66062\", 37], [\"66063\", 37], [\"66064\", 37], [\"66065\", 37], [\"66095\", 37], [\"66245\", 37], [\"66246\", 37], [\"66247\", 37], [\"66248\", 37], [\"66249\", 37], [\"66250\", 37], [\"66251\", 37], [\"2641\", 38], [\"66186\", 38], [\"66187\", 38], [\"2645\", 38], [\"66183\", 38], [\"66184\", 38], [\"2648\", 38], [\"2649\", 38], [\"2650\", 38], [\"2651\", 38], [\"65663\", 38], [\"66182\", 38], [\"66312\", 38], [\"2662\", 38], [\"2663\", 38], [\"66481\", 38], [\"2664\", 38], [\"2772\", 38], [\"2805\", 38], [\"2806\", 38], [\"2807\", 38], [\"2897\", 38], [\"2898\", 38], [\"2911\", 38], [\"66402\", 38], [\"66403\", 38], [\"66482\", 38], [\"66708\", 38], [\"66807\", 38], [\"3014\", 38], [\"65905\", 38], [\"65906\", 38], [\"65907\", 38], [\"65535\", 38], [\"65727\", 38], [\"65728\", 38], [\"65730\", 38], [\"66185\", 38], [\"65853\", 38], [\"65854\", 38], [\"65856\", 38], [\"65857\", 38], [\"65858\", 38], [\"65859\", 38], [\"65861\", 38], [\"65956\", 38], [\"66396\", 38], [\"66706\", 38], [\"66707\", 38], [\"66719\", 38], [\"66720\", 38], [\"66743\", 38]];\n\nasync function rpc(model,method,args,kw) {\n  if (!kw) kw = {};\n  var r = await helpers.httpRequest({method:\"POST\",url:ODOO_URL,json:true,\n    body:{jsonrpc:\"2.0\",method:\"call\",id:Date.now(),\n      params:{service:\"object\",method:\"execute_kw\",args:[DB,UID,PWD,model,method,args],kwargs:kw}}});\n  if (r.error) throw new Error(JSON.stringify(r.error.data||r.error).substring(0,400));\n  return r.result;\n}\n\nasync function getToken() {\n  var r = await helpers.httpRequest({method:\"POST\",url:\"https://developers.syscom.mx/oauth/token\",\n    headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},\n    body:\"client_id=zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7&client_secret=thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz&grant_type=client_credentials\"});\n  return r.access_token;\n}\n\nvar num = function(v,d){if(d===undefined)d=0;var n=Number(v);return Number.isFinite(n)?n:d;};\nvar sd = $getWorkflowStaticData(\"global\");\nvar body = ($input.all()[0] && $input.all()[0].json && $input.all()[0].json.body)||($input.all()[0] && $input.all()[0].json)||{};\n\nif (body.action===\"reset\") { Object.keys(sd).forEach(function(k){delete sd[k]}); return [{json:{_reset:true}}]; }\nif (body.action===\"status\") { return [{json:{subIdx:sd.subIdx||0,pagina:sd.pagina||1,cycle:sd.cycle||0,promos:sd.promos||0,scanned:sd.scanned||0,promosFound:(sd.promoList||[]).length}}]; }\n\nvar subIdx = sd.subIdx||0, pagina = sd.pagina||1;\nif (!sd.cycle) sd.cycle=0;\nif (!sd.promos) sd.promos=0;\nif (!sd.scanned) sd.scanned=0;\nif (!sd.promoList) sd.promoList=[];\n\nif (subIdx>=SUBS.length) {\n  // Cycle complete \u2014 build email with promos found\n  var promoList = sd.promoList||[];\n  var summary = {_cycleComplete:true,cycle:sd.cycle+1,scanned:sd.scanned,promosFound:promoList.length};\n  \n  // Build HTML for email\n  if (promoList.length > 0) {\n    var rows = \"\";\n    for (var i=0;i<Math.min(promoList.length,30);i++) {\n      var pr = promoList[i];\n      var bg = i%2===1?' style=\"background:#f5f5f5\"':'';\n      rows += '<tr'+bg+'><td style=\"padding:5px;font-size:12px\">'+pr.sku+'</td><td style=\"padding:5px;font-size:12px\">'+pr.name.substring(0,35)+'</td><td style=\"padding:5px;text-align:right;font-size:12px;text-decoration:line-through;color:#999\">$'+pr.normal.toLocaleString()+'</td><td style=\"padding:5px;text-align:right;font-size:12px;color:#c62828;font-weight:bold\">$'+pr.promo.toLocaleString()+'</td><td style=\"padding:5px;text-align:center;font-size:12px;color:#2e7d32;font-weight:bold\">-'+pr.pct+'%</td><td style=\"padding:5px;text-align:right;font-size:12px\">'+pr.stock+'</td></tr>';\n    }\n    summary.emailSubject = \"PROMO ALERT: \" + promoList.length + \" productos en promocion en Syscom\";\n    summary.emailHtml = '<div style=\"font-family:Arial;max-width:700px;margin:0 auto\"><div style=\"background:#c62828;padding:20px;border-radius:12px 12px 0 0;text-align:center\"><h1 style=\"color:white;margin:0;font-size:20px\">ALERTA DE PROMOCIONES</h1><p style=\"color:#ffcdd2;margin:5px 0 0;font-size:13px\">'+promoList.length+' productos detectados | Ciclo #'+(sd.cycle+1)+'</p></div><div style=\"background:#fff;padding:15px;border:1px solid #dee2e6\"><table style=\"width:100%;border-collapse:collapse\"><tr style=\"background:#ffebee\"><th style=\"padding:6px;text-align:left;font-size:11px\">SKU</th><th style=\"padding:6px;text-align:left;font-size:11px\">Producto</th><th style=\"padding:6px;text-align:right;font-size:11px\">Normal</th><th style=\"padding:6px;text-align:right;font-size:11px\">PROMO</th><th style=\"padding:6px;text-align:center;font-size:11px\">Desc</th><th style=\"padding:6px;text-align:right;font-size:11px\">Stock</th></tr>'+rows+'</table></div><div style=\"background:#1a1a2e;color:#90caf9;padding:10px;border-radius:0 0 12px 12px;text-align:center;font-size:10px\"><p style=\"margin:2px 0\">Ocean Tech | Monitor Promos v1 | '+new Date().toISOString().substring(0,16)+'</p></div></div>';\n  }\n  \n  sd.subIdx=0;sd.pagina=1;sd.cycle=(sd.cycle||0)+1;sd.promos=0;sd.scanned=0;sd.promoList=[];\n  return [{json:summary}];\n}\n\nvar syscomSubId = SUBS[subIdx][0];\nvar mainCatId = SUBS[subIdx][1];\nvar token;\ntry { token = await getToken(); } catch(e) { return [{json:{status:\"error\",error:\"Token: \"+e.message}}]; }\n\nvar productos=[], lastPage=false;\ntry {\n  var resp = await helpers.httpRequest({method:\"GET\",\n    url:\"https://developers.syscom.mx/api/v1/productos?categoria=\"+syscomSubId+\"&pagina=\"+pagina+\"&moneda=MXN\",\n    headers:{Authorization:\"Bearer \"+token},json:true,options:{timeout:30000}});\n  productos = resp.productos||[];\n  var totalPages = resp.paginas||0;\n  if (totalPages>0 && pagina>=totalPages) lastPage=true;\n  if (!productos.length) lastPage=true;\n} catch(e) {\n  sd.subIdx=subIdx+1;sd.pagina=1;\n  return [{json:{status:\"skip\",subIdx:subIdx}}];\n}\n\nif (!productos.length) { sd.subIdx=subIdx+1;sd.pagina=1; return [{json:{_empty:true,subIdx:subIdx}}]; }\n\n// Scan ALL products on this page for promos (no batch limit needed, just reading)\nvar promosFound = 0;\n\nfor (var i=0;i<productos.length;i++) {\n  var p = productos[i];\n  sd.scanned = (sd.scanned||0)+1;\n  \n  var precioNormal = num(p.precios && p.precios.precio_1, 0);\n  var precioDesc = num(p.precios && p.precios.precio_descuento, 0);\n  var precioEspecial = num(p.precios && p.precios.precio_especial, 0);\n  var stock = num(p.total_existencia, 0);\n  var sku = String(p.modelo||\"\");\n  \n  // Detect promo: precio_especial exists and is lower than normal, and has stock\n  var isPromo = false;\n  var promoPrice = 0;\n  var normalPrice = precioNormal || precioDesc;\n  \n  if (precioEspecial > 0 && precioEspecial < normalPrice && stock > 0) {\n    isPromo = true;\n    promoPrice = precioEspecial;\n  } else if (precioDesc > 0 && precioDesc < precioNormal * 0.9 && stock > 0) {\n    // >10% discount from list price\n    isPromo = true;\n    promoPrice = precioDesc;\n    normalPrice = precioNormal;\n  }\n  \n  if (isPromo && normalPrice > 0) {\n    var pctOff = Math.round((1 - promoPrice/normalPrice) * 100);\n    if (pctOff >= 5) { // At least 5% off\n      // Check if we already have this SKU in promoList (dedup)\n      var already = false;\n      for (var j=0;j<(sd.promoList||[]).length;j++) {\n        if (sd.promoList[j].sku === sku) { already=true; break; }\n      }\n      if (!already && (sd.promoList||[]).length < 100) {\n        sd.promoList.push({\n          sku: sku,\n          name: String(p.titulo||\"\").substring(0,50),\n          normal: Math.round(normalPrice),\n          promo: Math.round(promoPrice),\n          pct: pctOff,\n          stock: stock,\n          cat: (CAT_MAP[mainCatId]||{}).name||\"?\"\n        });\n        promosFound++;\n        sd.promos = (sd.promos||0)+1;\n      }\n    }\n  }\n}\n\n// Advance\nif (lastPage) { sd.subIdx=subIdx+1; sd.pagina=1; }\nelse { sd.pagina=pagina+1; }\n\nreturn [{json:{_summary:true,subIdx:subIdx,pagina:pagina,scanned:productos.length,promosFound:promosFound,\n  global:{sub:sd.subIdx,scanned:sd.scanned,promos:sd.promos,cycle:sd.cycle,promoListSize:(sd.promoList||[]).length}\n}}];\n"
+                },
+                "id": "c1",
+                "name": "Scan Promos",
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [
+                    470,
+                    400
+                ]
+            },
+            {
+                "parameters": {
+                    "fromEmail": "pipess21@gmail.com",
+                    "toEmail": "pipess21@gmail.com",
+                    "subject": "={{ $json.emailSubject || 'Monitor Promos - Sin promos nuevas' }}",
+                    "emailType": "html",
+                    "html": "={{ $json.emailHtml || '<p>Ciclo completado sin promos significativas.</p>' }}",
+                    "options": {}
+                },
+                "id": "e1",
+                "name": "Send Email",
+                "type": "n8n-nodes-base.emailSend",
+                "typeVersion": 2.1,
+                "position": [
+                    690,
+                    400
+                ],
+                "credentials": {
+                    "smtp": {
+                        "id": "8Sh1bZ6TghVIY8JW",
+                        "name": "Gmail SMTP - pipess21"
+                    }
+                }
+            }
+        ],
+        "connections": {
+            "Every 4h": {
+                "main": [
+                    [
+                        {
+                            "node": "Scan Promos",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Webhook": {
+                "main": [
+                    [
+                        {
+                            "node": "Scan Promos",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Scan Promos": {
+                "main": [
+                    [
+                        {
+                            "node": "Send Email",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            }
+        },
+        "authors": "Felipe De Alba",
+        "name": null,
+        "description": null,
+        "autosaved": false,
+        "workflowPublishHistory": [
+            {
+                "createdAt": "2026-03-30T17:30:18.294Z",
+                "id": 384,
+                "workflowId": "atlvmnV2n9Gr4KME",
+                "versionId": "fd6b392c-8097-4298-9849-36133c8d52cf",
+                "event": "activated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            },
+            {
+                "createdAt": "2026-03-30T17:30:18.283Z",
+                "id": 383,
+                "workflowId": "atlvmnV2n9Gr4KME",
+                "versionId": "fd6b392c-8097-4298-9849-36133c8d52cf",
+                "event": "deactivated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        ]
+    }
+}
