@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ofertas Especiales | Ocean Tech</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,Helvetica,sans-serif;">
+
+<!-- Wrapper -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0f4f8;">
+<tr><td align="center" style="padding:24px 16px;">
+
+  <!-- Contenedor principal 620px -->
+  <table width="620" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.10);">
+
+    <!-- ═══ HEADER ═══ -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#1a3a6b 0%,#29abe2 100%);padding:28px 36px 22px 36px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td>
+              <img src="https://raw.githubusercontent.com/pipsgdl/syscom-odoo-sync/main/assets/logo.png"
+                   alt="Ocean Tech" height="52" style="display:block;height:52px;">
+            </td>
+            <td align="right" valign="middle">
+              <span style="background:#ff6b35;color:#ffffff;font-size:11px;font-weight:bold;
+                           padding:5px 12px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;">
+                OFERTAS ESPECIALES
+              </span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ═══ HERO ═══ -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#1a3a6b 0%,#29abe2 100%);padding:0 36px 32px 36px;text-align:center;">
+        <h1 style="margin:0 0 8px 0;color:#ffffff;font-size:26px;font-weight:800;line-height:1.2;">
+          {{TITULO_CAMPAÑA}}
+        </h1>
+        <p style="margin:0;color:#b8dff5;font-size:14px;line-height:1.5;">
+          Seleccionamos las <strong style="color:#ffffff;">mejores promociones Syscom</strong> del día para ti.<br>
+          Precios válidos por tiempo limitado y sujetos a disponibilidad.
+        </p>
+        <!-- Stats bar -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+          <tr>
+            <td align="center" style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px 8px;">
+              <span style="color:#ffffff;font-size:22px;font-weight:800;">{{NUM_PROMOS}}</span><br>
+              <span style="color:#b8dff5;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Productos</span>
+            </td>
+            <td width="12"></td>
+            <td align="center" style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px 8px;">
+              <span style="color:#ff6b35;font-size:22px;font-weight:800;">{{MEJOR_DESCUENTO}}%</span><br>
+              <span style="color:#b8dff5;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Máx. descuento</span>
+            </td>
+            <td width="12"></td>
+            <td align="center" style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px 8px;">
+              <span style="color:#5ed45e;font-size:22px;font-weight:800;">${{MAYOR_AHORRO}}</span><br>
+              <span style="color:#b8dff5;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Mayor ahorro</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ═══ INTRO ═══ -->
+    <tr>
+      <td style="padding:24px 36px 8px 36px;">
+        <p style="margin:0;color:#4a5568;font-size:14px;line-height:1.6;">
+          Estimado cliente, en <strong style="color:#1a3a6b;">Ocean Tech</strong> te compartimos las mejores
+          ofertas de hoy para que puedas aprovechar precios de mayoreo directamente con nosotros.
+          Escríbenos y te cotizamos de inmediato.
+        </p>
+      </td>
+    </tr>
+
+    <!-- ═══ PRODUCTOS ═══ -->
+    <!-- PRODUCT_ROWS_START -->
+    {{PRODUCT_ROWS}}
+    <!-- PRODUCT_ROWS_END -->
+
+    <!-- ═══ CTA ═══ -->
+    <tr>
+      <td style="padding:24px 36px 32px 36px;text-align:center;">
+        <table cellpadding="0" cellspacing="0" border="0" align="center">
+          <tr>
+            <td style="background:linear-gradient(135deg,#29abe2,#1a3a6b);border-radius:8px;padding:14px 32px;">
+              <a href="https://oceantech.com.mx" target="_blank"
+                 style="color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;letter-spacing:0.5px;">
+                👉 Solicitar cotización
+              </a>
+            </td>
+            <td width="16"></td>
+            <td style="background:#25d366;border-radius:8px;padding:14px 32px;">
+              <a href="https://wa.me/523318888888?text=Hola%20Ocean%20Tech%2C%20vi%20sus%20promociones%20y%20quiero%20una%20cotizaci%C3%B3n"
+                 target="_blank"
+                 style="color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;letter-spacing:0.5px;">
+                📱 WhatsApp
+              </a>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:16px 0 0 0;color:#718096;font-size:12px;">
+          Precios en MXN + IVA. Sujetos a disponibilidad de stock en Syscom.
+        </p>
+      </td>
+    </tr>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <tr>
+      <td style="padding:0 36px;">
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:0;">
+      </td>
+    </tr>
+
+    <!-- ═══ FOOTER ═══ -->
+    <tr>
+      <td style="padding:20px 36px 24px 36px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td valign="top">
+              <img src="https://raw.githubusercontent.com/pipsgdl/syscom-odoo-sync/main/assets/logo.png"
+                   alt="Ocean Tech" height="32" style="display:block;height:32px;margin-bottom:8px;">
+              <p style="margin:0;color:#718096;font-size:11px;line-height:1.6;">
+                Ocean Technology Solutions<br>
+                Guadalajara, Jalisco, México<br>
+                <a href="https://oceantech.com.mx" style="color:#29abe2;text-decoration:none;">oceantech.com.mx</a>
+              </p>
+            </td>
+            <td align="right" valign="top">
+              <p style="margin:0;color:#a0aec0;font-size:10px;line-height:1.8;text-align:right;">
+                CCTV · Control de Acceso<br>
+                Redes · Detección de Incendios<br>
+                Audio · Automatización
+              </p>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:12px 0 0 0;color:#cbd5e0;font-size:10px;text-align:center;">
+          Recibiste este correo porque eres cliente o contacto de Ocean Tech.
+          <a href="{{UNSUBSCRIBE_URL}}" style="color:#a0aec0;">Cancelar suscripción</a>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+  <!-- fin contenedor principal -->
+
+</td></tr>
+</table>
+<!-- fin wrapper -->
+
+</body>
+</html>

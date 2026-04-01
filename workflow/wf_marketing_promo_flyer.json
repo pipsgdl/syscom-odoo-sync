@@ -1,0 +1,325 @@
+{
+    "updatedAt": "2026-04-01T21:59:02.418Z",
+    "createdAt": "2026-03-31T16:34:08.728Z",
+    "id": "rNmRU3jso1hjoaKY",
+    "name": "WF-MARKETING \u2014 Promo Flyer Clientes Ocean Tech",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "id": "schedule-node",
+            "name": "Lunes y Jueves 9am",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                240,
+                300
+            ],
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "cronExpression",
+                            "expression": "0 15 * * 1,4"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "webhook-node",
+            "name": "Webhook Test",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                460
+            ],
+            "parameters": {
+                "path": "marketing-promos",
+                "responseMode": "onReceived",
+                "responseData": "firstEntryJson"
+            },
+            "webhookId": "marketing-promos-ot"
+        },
+        {
+            "id": "fetch-node",
+            "name": "Fetch Top 8 Promos",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                380
+            ],
+            "parameters": {
+                "jsCode": "\nconst SYSCOM_CLIENT_ID     = 'zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7';\nconst SYSCOM_CLIENT_SECRET = 'thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz';\nconst CATS = [\n  {id:22, nombre:'Videovigilancia'},\n  {id:37, nombre:'Control de Acceso'},\n  {id:32, nombre:'Automatizaci\u00f3n'},\n  {id:38, nombre:'Detecci\u00f3n de Incendios'},\n  {id:26, nombre:'Redes e IT'},\n  {id:30, nombre:'Energ\u00eda'},\n  {id:25, nombre:'Radiocomunicaci\u00f3n'},\n  {id:27, nombre:'IoT/GPS'},\n];\nconst MIN_DESCUENTO = 15;\nconst PAGES_PER_CAT = 4;\nconst TOP_GLOBAL    = 12;  // 10-15 productos\nconst MARGEN        = 0.20; // 20% margen utilidad sobre precio venta\n\nlet token;\ntry {\n  const tokenResp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://developers.syscom.mx/oauth/token',\n    headers: {'Content-Type': 'application/x-www-form-urlencoded'},\n    body: `client_id=${SYSCOM_CLIENT_ID}&client_secret=${SYSCOM_CLIENT_SECRET}&grant_type=client_credentials`\n  });\n  token = tokenResp.access_token;\n} catch(e) {\n  throw new Error('Error auth Syscom: ' + e.message);\n}\n\nlet allPromos = [];\nconst seen = new Set();\n\nfor (const cat of CATS) {\n  for (let p = 1; p <= PAGES_PER_CAT; p++) {\n    let resp;\n    try {\n      resp = await this.helpers.httpRequest({\n        method: 'GET',\n        url: `https://developers.syscom.mx/api/v1/productos?categoria=${cat.id}&pagina=${p}&moneda=MXN`,\n        headers: {Authorization: `Bearer ${token}`}\n      });\n    } catch(e) { break; }\n    const prods = resp.productos || [];\n    if (!prods.length) break;\n    for (const pr of prods) {\n      const precios = pr.precios || {};\n      const lista   = parseFloat(precios.precio_lista) || 0;\n      const costo   = parseFloat(precios.precio_descuento) || lista;\n      if (!lista || costo >= lista) continue;\n      const pct = Math.round((1 - costo/lista)*100);\n      if (pct < MIN_DESCUENTO) continue;\n\n      // Deduplicar por t\u00edtulo similar\n      const key = (pr.titulo || pr.modelo || '').substring(0,40);\n      if (seen.has(key)) continue;\n      seen.add(key);\n\n      // Precio Ocean Tech con margen 20% sobre precio venta\n      const precioOcean = Math.ceil(costo / (1 - MARGEN));\n\n      allPromos.push({\n        titulo:       (pr.titulo || pr.modelo || '').substring(0,80),\n        modelo:       pr.modelo || '',\n        categoria:    cat.nombre,\n        precioSyscom: costo,        // costo que paga Ocean Tech\n        precioLista:  lista,        // precio lista Syscom (referencia)\n        precioOcean:  precioOcean,  // precio venta Ocean Tech (+20% margen)\n        descuentoPct: pct,          // % descuento vs lista Syscom\n        ahorro:       lista - costo,\n        imagen:       pr.img_portada || '',\n        url:          `https://www.syscom.mx/producto/${pr.modelo}`,\n      });\n    }\n  }\n}\n\nallPromos.sort((a,b) => b.descuentoPct - a.descuentoPct || b.ahorro - a.ahorro);\nconst top = allPromos.slice(0, TOP_GLOBAL);\nconst mejorDescuento = top.length ? top[0].descuentoPct : 0;\nconst mayorAhorro    = top.length ? Math.max(...top.map(p=>p.ahorro)).toFixed(0) : 0;\n\nreturn [{json:{promos:top, mejorDescuento, mayorAhorro, totalPromos:top.length}}];\n",
+                "mode": "runOnceForAllItems"
+            }
+        },
+        {
+            "id": "build-node",
+            "name": "Build HTML Flyer",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                720,
+                380
+            ],
+            "parameters": {
+                "jsCode": "\nconst {promos, mejorDescuento, mayorAhorro, totalPromos} = $input.first().json;\n\nconst meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];\nconst now = new Date();\nconst dias = ['domingo','lunes','martes','mi\u00e9rcoles','jueves','viernes','s\u00e1bado'];\nconst fecha = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;\nconst fechaCap = fecha.charAt(0).toUpperCase() + fecha.slice(1);\n\nfunction fmtMXN(n){ return '$' + Number(n).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0}); }\n\nlet productRows = '';\nfor (let i = 0; i < promos.length; i++) {\n  const p = promos[i];\n  const bg = i % 2 === 0 ? '#f7fafd' : '#ffffff';\n  const badgeColor = p.descuentoPct >= 50 ? '#e53e3e' : p.descuentoPct >= 35 ? '#dd6b20' : '#d69e2e';\n  const imgTag = p.imagen\n    ? `<img src=\"${p.imagen}\" alt=\"${p.titulo}\" width=\"80\" height=\"80\" style=\"width:80px;height:80px;object-fit:contain;border-radius:6px;background:#fff;border:1px solid #e2e8f0;\">`\n    : `<div style=\"width:80px;height:80px;background:#e2e8f0;border-radius:6px;font-size:26px;text-align:center;line-height:80px;\">\ud83d\udce6</div>`;\n\n  productRows += `\n    <tr><td style=\"padding:4px 36px;\">\n      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n             style=\"background:${bg};border-radius:10px;border:1px solid #e2e8f0;\">\n        <tr>\n          <td width=\"96\" style=\"padding:14px 8px 14px 14px;\" valign=\"top\">${imgTag}</td>\n          <td style=\"padding:14px 14px 14px 8px;\" valign=\"top\">\n            <span style=\"background:${badgeColor};color:#fff;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:12px;\">-${p.descuentoPct}% vs lista</span>\n            <span style=\"background:#ebf8ff;color:#2b6cb0;font-size:10px;padding:2px 8px;border-radius:12px;margin-left:6px;\">${p.categoria}</span>\n            <br><br>\n            <a href=\"${p.url}\" target=\"_blank\" style=\"color:#1a3a6b;font-size:13px;font-weight:bold;text-decoration:none;line-height:1.3;\">${p.titulo}</a>\n            <br><span style=\"color:#718096;font-size:11px;\">SKU: ${p.modelo}</span>\n            <br><br>\n            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n              <td style=\"padding-right:20px;\">\n                <span style=\"color:#a0aec0;font-size:10px;\">Lista Syscom</span><br>\n                <span style=\"color:#a0aec0;font-size:12px;text-decoration:line-through;\">${fmtMXN(p.precioLista)}</span>\n              </td>\n              <td style=\"padding-right:20px;border-left:2px solid #e2e8f0;padding-left:20px;\">\n                <span style=\"color:#718096;font-size:10px;\">Precio Ocean Tech</span><br>\n                <span style=\"color:#1a3a6b;font-size:20px;font-weight:800;\">${fmtMXN(p.precioOcean)}</span>\n                <span style=\"color:#718096;font-size:10px;\"> + IVA</span>\n              </td>\n              <td valign=\"bottom\">\n                <span style=\"background:#f0fff4;color:#276749;font-size:11px;font-weight:bold;padding:4px 8px;border-radius:6px;border:1px solid #c6f6d5;\">\n                  Ahorras ${fmtMXN(p.ahorro)} vs lista\n                </span>\n              </td>\n            </tr></table>\n          </td>\n        </tr>\n      </table>\n    </td></tr>\n    <tr><td style=\"height:8px;\"></td></tr>`;\n}\n\nconst subject = `\ud83d\udd25 ${totalPromos} Ofertas Especiales | Hasta -${mejorDescuento}% | Ocean Tech`;\n\nconst html = `<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>${subject}</title></head>\n<body style=\"margin:0;padding:0;background:#f0f4f8;font-family:Arial,Helvetica,sans-serif;\">\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#f0f4f8;\"><tr><td align=\"center\" style=\"padding:24px 16px;\">\n<table width=\"620\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:620px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.10);\">\n\n<tr><td style=\"background:linear-gradient(135deg,#1a3a6b 0%,#29abe2 100%);padding:28px 36px 22px;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n    <td><img src=\"https://raw.githubusercontent.com/pipsgdl/syscom-odoo-sync/main/assets/logo.png\" alt=\"Ocean Tech\" height=\"48\" style=\"display:block;height:48px;\"></td>\n    <td align=\"right\" valign=\"middle\"><span style=\"background:#ff6b35;color:#fff;font-size:11px;font-weight:bold;padding:5px 14px;border-radius:20px;letter-spacing:1px;\">OFERTAS DEL D\u00cdA</span></td>\n  </tr></table>\n</td></tr>\n\n<tr><td style=\"background:linear-gradient(135deg,#1a3a6b 0%,#29abe2 100%);padding:0 36px 28px;text-align:center;\">\n  <h1 style=\"margin:0 0 8px;color:#fff;font-size:24px;font-weight:800;\">${fechaCap}</h1>\n  <p style=\"margin:0;color:#b8dff5;font-size:13px;\">Las <strong style=\"color:#fff;\">${totalPromos} mejores promociones</strong> del d\u00eda \u2014 precios ya con tu margen incluido</p>\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:18px;\"><tr>\n    <td align=\"center\" style=\"background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 6px;\">\n      <span style=\"color:#fff;font-size:20px;font-weight:800;\">${totalPromos}</span><br>\n      <span style=\"color:#b8dff5;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Productos</span>\n    </td>\n    <td width=\"10\"></td>\n    <td align=\"center\" style=\"background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 6px;\">\n      <span style=\"color:#ff6b35;font-size:20px;font-weight:800;\">-${mejorDescuento}%</span><br>\n      <span style=\"color:#b8dff5;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">M\u00e1x. descuento</span>\n    </td>\n    <td width=\"10\"></td>\n    <td align=\"center\" style=\"background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 6px;\">\n      <span style=\"color:#5ed45e;font-size:20px;font-weight:800;\">20%</span><br>\n      <span style=\"color:#b8dff5;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Tu utilidad</span>\n    </td>\n  </tr></table>\n</td></tr>\n\n<tr><td style=\"padding:20px 36px 4px;\">\n  <p style=\"margin:0;color:#4a5568;font-size:13px;line-height:1.6;\">\n    Estimado cliente, en <strong style=\"color:#1a3a6b;\">Ocean Tech</strong> te compartimos las mejores\n    ofertas de hoy con precios especiales. Cont\u00e1ctanos para cotizaci\u00f3n inmediata.\n  </p>\n</td></tr>\n\n<tr><td style=\"padding:12px 0 4px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">${productRows}</table></td></tr>\n\n\n<tr><td style=\"padding:20px 36px 28px;text-align:center;\">\n  <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" align=\"center\"><tr>\n    <td style=\"background:linear-gradient(135deg,#29abe2,#1a3a6b);border-radius:8px;padding:13px 22px;\">\n      <a href=\"https://ocean-tech.odoo.com/shop\" target=\"_blank\" style=\"color:#fff;font-size:14px;font-weight:bold;text-decoration:none;\">\ud83d\uded2 Comprar en tienda online</a>\n    </td>\n    <td width=\"10\"></td>\n    <td style=\"background:#1a3a6b;border-radius:8px;padding:13px 22px;\">\n      <a href=\"https://oceantech.com.mx\" target=\"_blank\" style=\"color:#fff;font-size:14px;font-weight:bold;text-decoration:none;\">\ud83d\udc49 Solicitar cotizaci\u00f3n</a>\n    </td>\n    <td width=\"10\"></td>\n    <td style=\"background:#25d366;border-radius:8px;padding:13px 22px;\">\n      <a href=\"https://wa.me/523314172441?text=Hola%20Ocean%20Tech%2C%20vi%20sus%20promociones\" target=\"_blank\" style=\"color:#fff;font-size:14px;font-weight:bold;text-decoration:none;\">\ud83d\udcf1 WhatsApp</a>\n    </td>\n  </tr></table>\n  <p style=\"margin:12px 0 0;color:#718096;font-size:11px;\">Precios en MXN + IVA. Sujetos a disponibilidad Syscom.</p>\n</td></tr>\n\n<tr><td style=\"padding:0 36px;\"><hr style=\"border:none;border-top:1px solid #e2e8f0;margin:0;\"></td></tr>\n<tr><td style=\"padding:18px 36px 24px;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n    <td valign=\"top\">\n      <img src=\"https://raw.githubusercontent.com/pipsgdl/syscom-odoo-sync/main/assets/logo.png\" alt=\"Ocean Tech\" height=\"30\" style=\"display:block;height:30px;margin-bottom:6px;\">\n      <p style=\"margin:0;color:#718096;font-size:11px;line-height:1.6;\">Ocean Technology Solutions<br>Guadalajara, Jalisco, M\u00e9xico<br><a href=\"https://oceantech.com.mx\" style=\"color:#29abe2;text-decoration:none;\">oceantech.com.mx</a></p>\n    </td>\n    <td align=\"right\" valign=\"top\">\n      <p style=\"margin:0;color:#a0aec0;font-size:10px;line-height:1.8;text-align:right;\">CCTV \u00b7 Control de Acceso<br>Redes \u00b7 Detecci\u00f3n de Incendios<br>Audio \u00b7 Automatizaci\u00f3n</p>\n    </td>\n  </tr></table>\n  <p style=\"margin:10px 0 0;color:#cbd5e0;font-size:10px;text-align:center;\">\n    Recibiste este correo porque eres cliente o contacto de Ocean Tech.\n    <a href=\"{{unsubscribe}}\" style=\"color:#a0aec0;\">Cancelar suscripci\u00f3n</a>\n  </p>\n</td></tr>\n\n</table></td></tr></table></body></html>`;\n\nreturn [{json:{subject, html, totalPromos, mejorDescuento, mayorAhorro}}];\n",
+                "mode": "runOnceForAllItems"
+            }
+        },
+        {
+            "id": "send-node",
+            "name": "Crear y Enviar en Odoo",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                960,
+                380
+            ],
+            "parameters": {
+                "jsCode": "\nconst {subject, html} = $input.first().json;\nconst ODOO_URL  = 'https://ocean-tech.odoo.com/jsonrpc';\nconst ODOO_DB   = 'ocean-tech';\nconst ODOO_UID  = 2;\nconst ODOO_PWD  = 'M1ercole$';\nconst LIST_ID   = 2;\nconst MODEL_ID  = 2462;\n\nconst sleep = ms => new Promise(r => setTimeout(r, ms));\n\nconst rpc = async (method, model, args, kwargs={}) => {\n  // Reintentar hasta 3 veces si hay rate limit\n  for (let attempt = 1; attempt <= 3; attempt++) {\n    try {\n      const r = await this.helpers.httpRequest({\n        method: 'POST',\n        url: ODOO_URL,\n        body: JSON.stringify({\n          jsonrpc:'2.0', method:'call', id:1,\n          params:{service:'object', method:'execute_kw',\n            args:[ODOO_DB, ODOO_UID, ODOO_PWD, model, method, args, kwargs]}\n        }),\n        headers: {'Content-Type':'application/json'}\n      });\n      if (r.error) throw new Error(JSON.stringify(r.error));\n      return r.result;\n    } catch(e) {\n      if (attempt < 3 && (e.message.includes('429') || e.message.includes('503'))) {\n        await sleep(attempt * 8000);\n        continue;\n      }\n      throw e;\n    }\n  }\n};\n\n// Peque\u00f1a pausa inicial para evitar rate limit\nawait sleep(3000);\n\nconst mailingId = await rpc('create', 'mailing.mailing', [{\n  subject:           subject,\n  body_html:         html,\n  mailing_model_id:  MODEL_ID,\n  contact_list_ids:  [[4, LIST_ID]],\n  reply_to:          'comercial@oceantech.com.mx',\n  email_from:        'Ocean Tech <comercial@oceantech.com.mx>',\n}]);\n\nawait rpc('action_send_mail', 'mailing.mailing', [[mailingId]]);\n\nreturn [{json:{mailingId, subject, status:'sent'}}];\n",
+                "mode": "runOnceForAllItems"
+            }
+        }
+    ],
+    "connections": {
+        "Lunes y Jueves 9am": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Top 8 Promos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook Test": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Top 8 Promos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Top 8 Promos": {
+            "main": [
+                [
+                    {
+                        "node": "Build HTML Flyer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build HTML Flyer": {
+            "main": [
+                [
+                    {
+                        "node": "Crear y Enviar en Odoo",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "callerPolicy": "workflowsFromSameOwner",
+        "availableInMCP": false
+    },
+    "staticData": {
+        "node:Lunes y Jueves 9am": {
+            "recurrenceRules": []
+        }
+    },
+    "meta": null,
+    "pinData": null,
+    "versionId": "7a42e42f-5125-4bf1-8e99-db7fd71456c4",
+    "activeVersionId": "7a42e42f-5125-4bf1-8e99-db7fd71456c4",
+    "versionCounter": 25,
+    "triggerCount": 2,
+    "shared": [
+        {
+            "updatedAt": "2026-03-31T16:34:08.748Z",
+            "createdAt": "2026-03-31T16:34:08.748Z",
+            "role": "workflow:owner",
+            "workflowId": "rNmRU3jso1hjoaKY",
+            "projectId": "1ugGQHoQVF6DXsWx",
+            "project": {
+                "updatedAt": "2025-07-21T19:08:05.727Z",
+                "createdAt": "2025-07-21T19:06:54.563Z",
+                "id": "1ugGQHoQVF6DXsWx",
+                "name": "Felipe De Alba <pipess21@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        }
+    ],
+    "tags": [],
+    "activeVersion": {
+        "updatedAt": "2026-04-01T21:59:02.420Z",
+        "createdAt": "2026-04-01T21:59:02.420Z",
+        "versionId": "7a42e42f-5125-4bf1-8e99-db7fd71456c4",
+        "workflowId": "rNmRU3jso1hjoaKY",
+        "nodes": [
+            {
+                "id": "schedule-node",
+                "name": "Lunes y Jueves 9am",
+                "type": "n8n-nodes-base.scheduleTrigger",
+                "typeVersion": 1.2,
+                "position": [
+                    240,
+                    300
+                ],
+                "parameters": {
+                    "rule": {
+                        "interval": [
+                            {
+                                "field": "cronExpression",
+                                "expression": "0 15 * * 1,4"
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "id": "webhook-node",
+                "name": "Webhook Test",
+                "type": "n8n-nodes-base.webhook",
+                "typeVersion": 2,
+                "position": [
+                    240,
+                    460
+                ],
+                "parameters": {
+                    "path": "marketing-promos",
+                    "responseMode": "onReceived",
+                    "responseData": "firstEntryJson"
+                },
+                "webhookId": "marketing-promos-ot"
+            },
+            {
+                "id": "fetch-node",
+                "name": "Fetch Top 8 Promos",
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [
+                    480,
+                    380
+                ],
+                "parameters": {
+                    "jsCode": "\nconst SYSCOM_CLIENT_ID     = 'zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7';\nconst SYSCOM_CLIENT_SECRET = 'thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz';\nconst CATS = [\n  {id:22, nombre:'Videovigilancia'},\n  {id:37, nombre:'Control de Acceso'},\n  {id:32, nombre:'Automatizaci\u00f3n'},\n  {id:38, nombre:'Detecci\u00f3n de Incendios'},\n  {id:26, nombre:'Redes e IT'},\n  {id:30, nombre:'Energ\u00eda'},\n  {id:25, nombre:'Radiocomunicaci\u00f3n'},\n  {id:27, nombre:'IoT/GPS'},\n];\nconst MIN_DESCUENTO = 15;\nconst PAGES_PER_CAT = 4;\nconst TOP_GLOBAL    = 12;  // 10-15 productos\nconst MARGEN        = 0.20; // 20% margen utilidad sobre precio venta\n\nlet token;\ntry {\n  const tokenResp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://developers.syscom.mx/oauth/token',\n    headers: {'Content-Type': 'application/x-www-form-urlencoded'},\n    body: `client_id=${SYSCOM_CLIENT_ID}&client_secret=${SYSCOM_CLIENT_SECRET}&grant_type=client_credentials`\n  });\n  token = tokenResp.access_token;\n} catch(e) {\n  throw new Error('Error auth Syscom: ' + e.message);\n}\n\nlet allPromos = [];\nconst seen = new Set();\n\nfor (const cat of CATS) {\n  for (let p = 1; p <= PAGES_PER_CAT; p++) {\n    let resp;\n    try {\n      resp = await this.helpers.httpRequest({\n        method: 'GET',\n        url: `https://developers.syscom.mx/api/v1/productos?categoria=${cat.id}&pagina=${p}&moneda=MXN`,\n        headers: {Authorization: `Bearer ${token}`}\n      });\n    } catch(e) { break; }\n    const prods = resp.productos || [];\n    if (!prods.length) break;\n    for (const pr of prods) {\n      const precios = pr.precios || {};\n      const lista   = parseFloat(precios.precio_lista) || 0;\n      const costo   = parseFloat(precios.precio_descuento) || lista;\n      if (!lista || costo >= lista) continue;\n      const pct = Math.round((1 - costo/lista)*100);\n      if (pct < MIN_DESCUENTO) continue;\n\n      // Deduplicar por t\u00edtulo similar\n      const key = (pr.titulo || pr.modelo || '').substring(0,40);\n      if (seen.has(key)) continue;\n      seen.add(key);\n\n      // Precio Ocean Tech con margen 20% sobre precio venta\n      const precioOcean = Math.ceil(costo / (1 - MARGEN));\n\n      allPromos.push({\n        titulo:       (pr.titulo || pr.modelo || '').substring(0,80),\n        modelo:       pr.modelo || '',\n        categoria:    cat.nombre,\n        precioSyscom: costo,        // costo que paga Ocean Tech\n        precioLista:  lista,        // precio lista Syscom (referencia)\n        precioOcean:  precioOcean,  // precio venta Ocean Tech (+20% margen)\n        descuentoPct: pct,          // % descuento vs lista Syscom\n        ahorro:       lista - costo,\n        imagen:       pr.img_portada || '',\n        url:          `https://www.syscom.mx/producto/${pr.modelo}`,\n      });\n    }\n  }\n}\n\nallPromos.sort((a,b) => b.descuentoPct - a.descuentoPct || b.ahorro - a.ahorro);\nconst top = allPromos.slice(0, TOP_GLOBAL);\nconst mejorDescuento = top.length ? top[0].descuentoPct : 0;\nconst mayorAhorro    = top.length ? Math.max(...top.map(p=>p.ahorro)).toFixed(0) : 0;\n\nreturn [{json:{promos:top, mejorDescuento, mayorAhorro, totalPromos:top.length}}];\n",
+                    "mode": "runOnceForAllItems"
+                }
+            },
+            {
+                "id": "build-node",
+                "name": "Build HTML Flyer",
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [
+                    720,
+                    380
+                ],
+                "parameters": {
+                    "jsCode": "\nconst {promos, mejorDescuento, mayorAhorro, totalPromos} = $input.first().json;\n\nconst meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];\nconst now = new Date();\nconst dias = ['domingo','lunes','martes','mi\u00e9rcoles','jueves','viernes','s\u00e1bado'];\nconst fecha = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;\nconst fechaCap = fecha.charAt(0).toUpperCase() + fecha.slice(1);\n\nfunction fmtMXN(n){ return '$' + Number(n).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0}); }\n\nlet productRows = '';\nfor (let i = 0; i < promos.length; i++) {\n  const p = promos[i];\n  const bg = i % 2 === 0 ? '#f7fafd' : '#ffffff';\n  const badgeColor = p.descuentoPct >= 50 ? '#e53e3e' : p.descuentoPct >= 35 ? '#dd6b20' : '#d69e2e';\n  const imgTag = p.imagen\n    ? `<img src=\"${p.imagen}\" alt=\"${p.titulo}\" width=\"80\" height=\"80\" style=\"width:80px;height:80px;object-fit:contain;border-radius:6px;background:#fff;border:1px solid #e2e8f0;\">`\n    : `<div style=\"width:80px;height:80px;background:#e2e8f0;border-radius:6px;font-size:26px;text-align:center;line-height:80px;\">\ud83d\udce6</div>`;\n\n  productRows += `\n    <tr><td style=\"padding:4px 36px;\">\n      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"\n             style=\"background:${bg};border-radius:10px;border:1px solid #e2e8f0;\">\n        <tr>\n          <td width=\"96\" style=\"padding:14px 8px 14px 14px;\" valign=\"top\">${imgTag}</td>\n          <td style=\"padding:14px 14px 14px 8px;\" valign=\"top\">\n            <span style=\"background:${badgeColor};color:#fff;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:12px;\">-${p.descuentoPct}% vs lista</span>\n            <span style=\"background:#ebf8ff;color:#2b6cb0;font-size:10px;padding:2px 8px;border-radius:12px;margin-left:6px;\">${p.categoria}</span>\n            <br><br>\n            <a href=\"${p.url}\" target=\"_blank\" style=\"color:#1a3a6b;font-size:13px;font-weight:bold;text-decoration:none;line-height:1.3;\">${p.titulo}</a>\n            <br><span style=\"color:#718096;font-size:11px;\">SKU: ${p.modelo}</span>\n            <br><br>\n            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n              <td style=\"padding-right:20px;\">\n                <span style=\"color:#a0aec0;font-size:10px;\">Lista Syscom</span><br>\n                <span style=\"color:#a0aec0;font-size:12px;text-decoration:line-through;\">${fmtMXN(p.precioLista)}</span>\n              </td>\n              <td style=\"padding-right:20px;border-left:2px solid #e2e8f0;padding-left:20px;\">\n                <span style=\"color:#718096;font-size:10px;\">Precio Ocean Tech</span><br>\n                <span style=\"color:#1a3a6b;font-size:20px;font-weight:800;\">${fmtMXN(p.precioOcean)}</span>\n                <span style=\"color:#718096;font-size:10px;\"> + IVA</span>\n              </td>\n              <td valign=\"bottom\">\n                <span style=\"background:#f0fff4;color:#276749;font-size:11px;font-weight:bold;padding:4px 8px;border-radius:6px;border:1px solid #c6f6d5;\">\n                  Ahorras ${fmtMXN(p.ahorro)} vs lista\n                </span>\n              </td>\n            </tr></table>\n          </td>\n        </tr>\n      </table>\n    </td></tr>\n    <tr><td style=\"height:8px;\"></td></tr>`;\n}\n\nconst subject = `\ud83d\udd25 ${totalPromos} Ofertas Especiales | Hasta -${mejorDescuento}% | Ocean Tech`;\n\nconst html = `<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>${subject}</title></head>\n<body style=\"margin:0;padding:0;background:#f0f4f8;font-family:Arial,Helvetica,sans-serif;\">\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#f0f4f8;\"><tr><td align=\"center\" style=\"padding:24px 16px;\">\n<table width=\"620\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:620px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.10);\">\n\n<tr><td style=\"background:linear-gradient(135deg,#1a3a6b 0%,#29abe2 100%);padding:28px 36px 22px;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n    <td><img src=\"https://raw.githubusercontent.com/pipsgdl/syscom-odoo-sync/main/assets/logo.png\" alt=\"Ocean Tech\" height=\"48\" style=\"display:block;height:48px;\"></td>\n    <td align=\"right\" valign=\"middle\"><span style=\"background:#ff6b35;color:#fff;font-size:11px;font-weight:bold;padding:5px 14px;border-radius:20px;letter-spacing:1px;\">OFERTAS DEL D\u00cdA</span></td>\n  </tr></table>\n</td></tr>\n\n<tr><td style=\"background:linear-gradient(135deg,#1a3a6b 0%,#29abe2 100%);padding:0 36px 28px;text-align:center;\">\n  <h1 style=\"margin:0 0 8px;color:#fff;font-size:24px;font-weight:800;\">${fechaCap}</h1>\n  <p style=\"margin:0;color:#b8dff5;font-size:13px;\">Las <strong style=\"color:#fff;\">${totalPromos} mejores promociones</strong> del d\u00eda \u2014 precios ya con tu margen incluido</p>\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:18px;\"><tr>\n    <td align=\"center\" style=\"background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 6px;\">\n      <span style=\"color:#fff;font-size:20px;font-weight:800;\">${totalPromos}</span><br>\n      <span style=\"color:#b8dff5;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Productos</span>\n    </td>\n    <td width=\"10\"></td>\n    <td align=\"center\" style=\"background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 6px;\">\n      <span style=\"color:#ff6b35;font-size:20px;font-weight:800;\">-${mejorDescuento}%</span><br>\n      <span style=\"color:#b8dff5;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">M\u00e1x. descuento</span>\n    </td>\n    <td width=\"10\"></td>\n    <td align=\"center\" style=\"background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 6px;\">\n      <span style=\"color:#5ed45e;font-size:20px;font-weight:800;\">20%</span><br>\n      <span style=\"color:#b8dff5;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Tu utilidad</span>\n    </td>\n  </tr></table>\n</td></tr>\n\n<tr><td style=\"padding:20px 36px 4px;\">\n  <p style=\"margin:0;color:#4a5568;font-size:13px;line-height:1.6;\">\n    Estimado cliente, en <strong style=\"color:#1a3a6b;\">Ocean Tech</strong> te compartimos las mejores\n    ofertas de hoy con precios especiales. Cont\u00e1ctanos para cotizaci\u00f3n inmediata.\n  </p>\n</td></tr>\n\n<tr><td style=\"padding:12px 0 4px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">${productRows}</table></td></tr>\n\n\n<tr><td style=\"padding:20px 36px 28px;text-align:center;\">\n  <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" align=\"center\"><tr>\n    <td style=\"background:linear-gradient(135deg,#29abe2,#1a3a6b);border-radius:8px;padding:13px 22px;\">\n      <a href=\"https://ocean-tech.odoo.com/shop\" target=\"_blank\" style=\"color:#fff;font-size:14px;font-weight:bold;text-decoration:none;\">\ud83d\uded2 Comprar en tienda online</a>\n    </td>\n    <td width=\"10\"></td>\n    <td style=\"background:#1a3a6b;border-radius:8px;padding:13px 22px;\">\n      <a href=\"https://oceantech.com.mx\" target=\"_blank\" style=\"color:#fff;font-size:14px;font-weight:bold;text-decoration:none;\">\ud83d\udc49 Solicitar cotizaci\u00f3n</a>\n    </td>\n    <td width=\"10\"></td>\n    <td style=\"background:#25d366;border-radius:8px;padding:13px 22px;\">\n      <a href=\"https://wa.me/523314172441?text=Hola%20Ocean%20Tech%2C%20vi%20sus%20promociones\" target=\"_blank\" style=\"color:#fff;font-size:14px;font-weight:bold;text-decoration:none;\">\ud83d\udcf1 WhatsApp</a>\n    </td>\n  </tr></table>\n  <p style=\"margin:12px 0 0;color:#718096;font-size:11px;\">Precios en MXN + IVA. Sujetos a disponibilidad Syscom.</p>\n</td></tr>\n\n<tr><td style=\"padding:0 36px;\"><hr style=\"border:none;border-top:1px solid #e2e8f0;margin:0;\"></td></tr>\n<tr><td style=\"padding:18px 36px 24px;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n    <td valign=\"top\">\n      <img src=\"https://raw.githubusercontent.com/pipsgdl/syscom-odoo-sync/main/assets/logo.png\" alt=\"Ocean Tech\" height=\"30\" style=\"display:block;height:30px;margin-bottom:6px;\">\n      <p style=\"margin:0;color:#718096;font-size:11px;line-height:1.6;\">Ocean Technology Solutions<br>Guadalajara, Jalisco, M\u00e9xico<br><a href=\"https://oceantech.com.mx\" style=\"color:#29abe2;text-decoration:none;\">oceantech.com.mx</a></p>\n    </td>\n    <td align=\"right\" valign=\"top\">\n      <p style=\"margin:0;color:#a0aec0;font-size:10px;line-height:1.8;text-align:right;\">CCTV \u00b7 Control de Acceso<br>Redes \u00b7 Detecci\u00f3n de Incendios<br>Audio \u00b7 Automatizaci\u00f3n</p>\n    </td>\n  </tr></table>\n  <p style=\"margin:10px 0 0;color:#cbd5e0;font-size:10px;text-align:center;\">\n    Recibiste este correo porque eres cliente o contacto de Ocean Tech.\n    <a href=\"{{unsubscribe}}\" style=\"color:#a0aec0;\">Cancelar suscripci\u00f3n</a>\n  </p>\n</td></tr>\n\n</table></td></tr></table></body></html>`;\n\nreturn [{json:{subject, html, totalPromos, mejorDescuento, mayorAhorro}}];\n",
+                    "mode": "runOnceForAllItems"
+                }
+            },
+            {
+                "id": "send-node",
+                "name": "Crear y Enviar en Odoo",
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [
+                    960,
+                    380
+                ],
+                "parameters": {
+                    "jsCode": "\nconst {subject, html} = $input.first().json;\nconst ODOO_URL  = 'https://ocean-tech.odoo.com/jsonrpc';\nconst ODOO_DB   = 'ocean-tech';\nconst ODOO_UID  = 2;\nconst ODOO_PWD  = 'M1ercole$';\nconst LIST_ID   = 2;\nconst MODEL_ID  = 2462;\n\nconst sleep = ms => new Promise(r => setTimeout(r, ms));\n\nconst rpc = async (method, model, args, kwargs={}) => {\n  // Reintentar hasta 3 veces si hay rate limit\n  for (let attempt = 1; attempt <= 3; attempt++) {\n    try {\n      const r = await this.helpers.httpRequest({\n        method: 'POST',\n        url: ODOO_URL,\n        body: JSON.stringify({\n          jsonrpc:'2.0', method:'call', id:1,\n          params:{service:'object', method:'execute_kw',\n            args:[ODOO_DB, ODOO_UID, ODOO_PWD, model, method, args, kwargs]}\n        }),\n        headers: {'Content-Type':'application/json'}\n      });\n      if (r.error) throw new Error(JSON.stringify(r.error));\n      return r.result;\n    } catch(e) {\n      if (attempt < 3 && (e.message.includes('429') || e.message.includes('503'))) {\n        await sleep(attempt * 8000);\n        continue;\n      }\n      throw e;\n    }\n  }\n};\n\n// Peque\u00f1a pausa inicial para evitar rate limit\nawait sleep(3000);\n\nconst mailingId = await rpc('create', 'mailing.mailing', [{\n  subject:           subject,\n  body_html:         html,\n  mailing_model_id:  MODEL_ID,\n  contact_list_ids:  [[4, LIST_ID]],\n  reply_to:          'comercial@oceantech.com.mx',\n  email_from:        'Ocean Tech <comercial@oceantech.com.mx>',\n}]);\n\nawait rpc('action_send_mail', 'mailing.mailing', [[mailingId]]);\n\nreturn [{json:{mailingId, subject, status:'sent'}}];\n",
+                    "mode": "runOnceForAllItems"
+                }
+            }
+        ],
+        "connections": {
+            "Lunes y Jueves 9am": {
+                "main": [
+                    [
+                        {
+                            "node": "Fetch Top 8 Promos",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Webhook Test": {
+                "main": [
+                    [
+                        {
+                            "node": "Fetch Top 8 Promos",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Fetch Top 8 Promos": {
+                "main": [
+                    [
+                        {
+                            "node": "Build HTML Flyer",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Build HTML Flyer": {
+                "main": [
+                    [
+                        {
+                            "node": "Crear y Enviar en Odoo",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            }
+        },
+        "authors": "Felipe De Alba",
+        "name": null,
+        "description": null,
+        "autosaved": false,
+        "workflowPublishHistory": [
+            {
+                "createdAt": "2026-04-01T21:59:02.460Z",
+                "id": 467,
+                "workflowId": "rNmRU3jso1hjoaKY",
+                "versionId": "7a42e42f-5125-4bf1-8e99-db7fd71456c4",
+                "event": "activated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            },
+            {
+                "createdAt": "2026-04-01T21:59:02.446Z",
+                "id": 466,
+                "workflowId": "rNmRU3jso1hjoaKY",
+                "versionId": "7a42e42f-5125-4bf1-8e99-db7fd71456c4",
+                "event": "deactivated",
+                "userId": "0bbf9c16-bcd0-4def-9bb3-af04f5d4721d"
+            }
+        ]
+    }
+}
