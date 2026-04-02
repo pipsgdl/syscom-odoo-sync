@@ -1,0 +1,105 @@
+{
+  "name": "WF5 — Image Sync (portada + 3 extra)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mt1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "image-sync",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "wh1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        250,
+        500
+      ],
+      "webhookId": "image-sync"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "sched1",
+      "name": "Every 2 Min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        250,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// WF5 — Image Sync: portada + hasta 3 imágenes extra\n// - Fase 1: productos SIN image_1920 → retry portada desde Syscom\n// - Fase 2: todos los productos → hasta 3 imágenes extra via product.image\n// - Usa endpoint individual /api/v1/productos/{id} para array imagenes\n// ============================================================\n\nconst ODOO_URL = \"https://ocean-tech.odoo.com/jsonrpc\";\nconst DB = \"ocean-tech\", UID = 2, PWD = \"M1ercole$\";\nconst SYSCOM_CLIENT = \"zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7\";\nconst SYSCOM_SECRET = \"thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz\";\nconst BATCH_SIZE = 10; // menos productos por batch = menos presión en Odoo y Syscom\nconst MAX_EXTRA_IMAGES = 3;\n\nconst sleep = ms => new Promise(r => setTimeout(r, ms));\n\nasync function odoo(model, method, args, kwargs={}) {\n  for (let attempt = 0; attempt < 3; attempt++) {\n    try {\n      const resp = await this.helpers.httpRequest({\n        method:\"POST\", url:ODOO_URL, json:true,\n        body:{jsonrpc:\"2.0\",method:\"call\",id:Date.now(),\n          params:{service:\"object\",method:\"execute_kw\",\n            args:[DB,UID,PWD,model,method,args],kwargs}}\n      });\n      if (resp.error) throw new Error(JSON.stringify(resp.error.data||resp.error).substring(0,500));\n      return resp.result;\n    } catch(e) {\n      const msg = String(e.message);\n      if (attempt < 2 && (msg.includes(\"429\") || msg.includes(\"Too Many\") || msg.includes(\"503\"))) {\n        await sleep((attempt + 1) * 5000);\n        continue;\n      }\n      throw e;\n    }\n  }\n}\n\nasync function getSyscomToken() {\n  const resp = await this.helpers.httpRequest({\n    method:\"POST\", url:\"https://developers.syscom.mx/oauth/token\",\n    headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},\n    body:\"client_id=\"+SYSCOM_CLIENT+\"&client_secret=\"+SYSCOM_SECRET+\"&grant_type=client_credentials\"\n  });\n  return resp.access_token;\n}\n\nasync function imgToBase64(url) {\n  if (!url) return null;\n  try {\n    const resp = await this.helpers.httpRequest({\n      method:\"GET\", url, encoding:\"arraybuffer\", options:{timeout:15000}\n    });\n    if (resp && resp.length > 500) return Buffer.from(resp).toString(\"base64\");\n    return null;\n  } catch(e) { return null; }\n}\n\nasync function getSyscomProduct(token, productoId) {\n  try {\n    const resp = await this.helpers.httpRequest({\n      method:\"GET\",\n      url:\"https://developers.syscom.mx/api/v1/productos/\" + productoId,\n      headers:{Authorization:\"Bearer \" + token},\n      json:true, options:{timeout:15000}\n    });\n    return resp;\n  } catch(e) { return null; }\n}\n\n// === StaticData ===\nconst sd = $getWorkflowStaticData(\"global\");\nconst inputItems = $input.all();\nconst body = inputItems[0]?.json?.body || inputItems[0]?.json || {};\n\nif (body.action === \"reset\") {\n  Object.keys(sd).forEach(k => delete sd[k]);\n  return [{ json: { _reset:true, message:\"RESET OK\" } }];\n}\nif (body.action === \"status\") {\n  return [{ json: {\n    phase: sd.phase || \"1_portada\",\n    offset: sd.offset || 0,\n    portadaFixed: sd.portadaFixed || 0,\n    extraAdded: sd.extraAdded || 0,\n    processed: sd.processed || 0,\n    errors: sd.errors || 0,\n    done: sd.done || false\n  }}];\n}\n\n// === Init ===\nif (!sd.phase) sd.phase = \"1_portada\";\nif (!sd.offset) sd.offset = 0;\nif (!sd.portadaFixed) sd.portadaFixed = 0;\nif (!sd.extraAdded) sd.extraAdded = 0;\nif (!sd.processed) sd.processed = 0;\nif (!sd.errors) sd.errors = 0;\n\nif (sd.done) {\n  return [{ json: { _done:true, message:\"IMAGE SYNC COMPLETADO\",\n    portadaFixed:sd.portadaFixed, extraAdded:sd.extraAdded,\n    processed:sd.processed, errors:sd.errors }}];\n}\n\nconst token = await getSyscomToken.call(this);\nconst results = [];\n\n// =============================================\n// FASE 1: Productos sin imagen principal\n// =============================================\nif (sd.phase === \"1_portada\") {\n  // Buscar productos sin image_1920 que tengan barcode (SKU Syscom)\n  const prods = await odoo.call(this, \"product.template\", \"search_read\",\n    [[[\"image_1920\",\"=\",false],[\"barcode\",\"!=\",false]]],\n    {fields:[\"id\",\"barcode\",\"name\"], limit:BATCH_SIZE, offset:sd.offset, order:\"id asc\"});\n\n  if (!prods || prods.length === 0) {\n    // Fase 1 terminada → pasar a fase 2\n    sd.phase = \"2_extra\";\n    sd.offset = 0;\n    return [{ json: { status:\"phase1_done\", portadaFixed:sd.portadaFixed,\n      message:\"Pasando a fase 2 (imágenes extra)\" }}];\n  }\n\n  for (const p of prods) {\n    try {\n      const sku = p.barcode;\n      // Buscar en Syscom por categoría para obtener img_portada\n      // Primero intentar buscar producto en listing\n      const searchResp = await this.helpers.httpRequest({\n        method:\"GET\",\n        url:\"https://developers.syscom.mx/api/v1/productos?busqueda=\" + encodeURIComponent(sku) + \"&moneda=MXN\",\n        headers:{Authorization:\"Bearer \" + token},\n        json:true, options:{timeout:15000}\n      });\n\n      let imgUrl = null;\n      const found = (searchResp.productos || []).find(sp => String(sp.modelo) === String(sku));\n      if (found && found.img_portada) {\n        imgUrl = found.img_portada;\n      }\n\n      if (imgUrl) {\n        const b64 = await imgToBase64.call(this, imgUrl);\n        if (b64) {\n          await odoo.call(this, \"product.template\", \"write\", [[p.id], {image_1920: b64}]);\n          sd.portadaFixed++;\n          results.push({ json: { sku, op:\"portada_fixed\", prodId:p.id } });\n        } else {\n          results.push({ json: { sku, op:\"portada_download_fail\", prodId:p.id } });\n        }\n      } else {\n        results.push({ json: { sku, op:\"portada_not_found_syscom\", prodId:p.id } });\n      }\n      sd.processed++;\n      await sleep(300);\n    } catch(err) {\n      sd.errors++;\n      results.push({ json: { sku:p.barcode||\"?\", op:\"error\", error:err.message.substring(0,200) } });\n    }\n  }\n\n  sd.offset += prods.length;\n  if (prods.length < BATCH_SIZE) {\n    sd.phase = \"2_extra\";\n    sd.offset = 0;\n  }\n\n  return results.length ? results : [{ json: { status:\"phase1_batch\", offset:sd.offset, portadaFixed:sd.portadaFixed }}];\n}\n\n// =============================================\n// FASE 2: Imágenes extra (hasta 3 por producto)\n// =============================================\nif (sd.phase === \"2_extra\") {\n  // Buscar productos con barcode que NO tengan ya imágenes extra\n  const prods = await odoo.call(this, \"product.template\", \"search_read\",\n    [[[\"barcode\",\"!=\",false],[\"image_1920\",\"!=\",false]]],\n    {fields:[\"id\",\"barcode\",\"name\",\"product_template_image_ids\"], limit:BATCH_SIZE, offset:sd.offset, order:\"id asc\"});\n\n  if (!prods || prods.length === 0) {\n    sd.done = true;\n    return [{ json: { _done:true, message:\"IMAGE SYNC COMPLETADO\",\n      portadaFixed:sd.portadaFixed, extraAdded:sd.extraAdded,\n      processed:sd.processed, errors:sd.errors }}];\n  }\n\n  for (const p of prods) {\n    try {\n      // Saltar si ya tiene imágenes extra\n      const existingExtras = p.product_template_image_ids || [];\n      if (existingExtras.length >= MAX_EXTRA_IMAGES) {\n        results.push({ json: { sku:p.barcode, op:\"skip_has_extras\", count:existingExtras.length } });\n        sd.processed++;\n        continue;\n      }\n\n      const sku = p.barcode;\n\n      // Buscar producto_id en Syscom via búsqueda\n      const searchResp = await this.helpers.httpRequest({\n        method:\"GET\",\n        url:\"https://developers.syscom.mx/api/v1/productos?busqueda=\" + encodeURIComponent(sku) + \"&moneda=MXN\",\n        headers:{Authorization:\"Bearer \" + token},\n        json:true, options:{timeout:15000}\n      });\n\n      const found = (searchResp.productos || []).find(sp => String(sp.modelo) === String(sku));\n      if (!found || !found.producto_id) {\n        results.push({ json: { sku, op:\"not_found_syscom\" } });\n        sd.processed++;\n        await sleep(200);\n        continue;\n      }\n\n      // Obtener detalle con imágenes\n      const detail = await getSyscomProduct.call(this, token, found.producto_id);\n      if (!detail || !detail.imagenes || detail.imagenes.length <= 1) {\n        results.push({ json: { sku, op:\"no_extra_images\", syscomId:found.producto_id } });\n        sd.processed++;\n        await sleep(200);\n        continue;\n      }\n\n      // Tomar imágenes extra (skip la primera que ya es portada)\n      const extraImgs = detail.imagenes\n        .filter((img, idx) => idx > 0 && img.imagen)\n        .slice(0, MAX_EXTRA_IMAGES - existingExtras.length);\n\n      let added = 0;\n      for (let i = 0; i < extraImgs.length; i++) {\n        const imgData = extraImgs[i];\n        const b64 = await imgToBase64.call(this, imgData.imagen);\n        if (b64) {\n          await odoo.call(this, \"product.image\", \"create\", [{\n            product_tmpl_id: p.id,\n            name: p.name + \" - Vista \" + (existingExtras.length + i + 1),\n            image_1920: b64,\n            sequence: existingExtras.length + i + 1\n          }]);\n          added++;\n          await sleep(200);\n        }\n      }\n\n      sd.extraAdded += added;\n      sd.processed++;\n      results.push({ json: { sku, op:\"extras_added\", count:added, prodId:p.id, syscomId:found.producto_id } });\n      await sleep(300);\n\n    } catch(err) {\n      sd.errors++;\n      results.push({ json: { sku:p.barcode||\"?\", op:\"error\", error:err.message.substring(0,200) } });\n    }\n  }\n\n  sd.offset += prods.length;\n  return results.length ? results : [{ json: { status:\"phase2_batch\", offset:sd.offset, extraAdded:sd.extraAdded }}];\n}\n\nreturn [{ json: { error:\"unknown phase\", phase:sd.phase } }];\n"
+      },
+      "id": "img1",
+      "name": "Image Sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        470,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Image Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Image Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every 2 Min": {
+      "main": [
+        [
+          {
+            "node": "Image Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
