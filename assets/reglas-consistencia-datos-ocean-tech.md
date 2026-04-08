@@ -4,15 +4,30 @@
 
 ---
 
-## Decisiones Tomadas
+## Decisiones Tomadas — Cuestionario Completo (2026-04-08)
 
-| # | Decisión | Respuesta |
-|---|----------|-----------|
-| P1 | SKU | Viene de cada proveedor (codigo_fabricante) |
-| P9 | Multi-proveedor | Comparativo de precios, el más barato gana |
-| P13 | Campos obligatorios | Foto + Modelo/SKU + Descripción + Precio |
-| P14 | Sin stock | Ocultar (despublicar automáticamente) |
+| # | Pregunta | Decisión |
+|---|----------|---------|
+| P1 | SKU | Viene de cada proveedor (codigo_fabricante del fabricante) |
+| P2 | Barcode | = SKU siempre |
+| P3 | Sin SKU (382 servicios) | Prefijo SERV-, mover a categoría "Servicios" |
+| P4 | Fotos mínimas para publicar | Por categoría: Cámaras/DVR/Acceso/Incendio/Audio=3, Redes/Energía/Accesorios=2, Cable=1, Servicios=imagen genérica |
+| P5 | Sin foto | Buscar en sitio fabricante → imagen genérica por categoría |
+| P6 | Logo de marca | Guardar en Odoo |
+| P7 | Listas de precios | 5: Online, Menudeo, Proyecto, Mayoreo, Gobierno |
+| P8 | Márgenes | Por categoría sobre costo más bajo entre proveedores |
+| P9 | Multi-proveedor | Comparativo, el más barato gana como standard_price |
+| P10 | IVA en tienda | Precios CON IVA incluido (list_price = costo/(1-margen)*1.16) |
+| P11 | Categorías | Subcategorías granulares para ecommerce |
+| P12 | Categoría COMPUTO | Nueva categoría + subcategorías, limpiar cajón de sastre |
+| P13 | Descripción | Bullet points estilo Amazon (características técnicas) |
+| P14 | Sin stock | Despublicar automáticamente |
 | P15 | Proveedor | Registrar en product.supplierinfo |
+| P16 | Próximos proveedores | CT → PCH → Exel Norte → Tecnosinergia → Ingram (a $200K USD/año) |
+| P17 | Frecuencia precios | 1 vez al día (nocturno) |
+| P18 | Frecuencia stock | Cada 30 minutos |
+| P19 | Duplicados | Fusión automática: más datos + precio más bajo gana |
+| P20 | Prioridad limpieza | 1-Duplicados → 2-Imágenes → 3-SAT → 4-Categorías → 5-Supplierinfo |
 
 ---
 
