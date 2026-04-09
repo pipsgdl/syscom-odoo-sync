@@ -8,7 +8,7 @@ while true; do
   clear
 
   # Get state
-  STATE=$(curl -s --max-time 8 -H "X-N8N-API-KEY: $N8N_KEY" "https://n8n.dealbapropiedades.com.mx/api/v1/workflows/ylxPHHe9ymC49FTO" | python3 -c "
+  STATE=$(curl -s --max-time 8 -H "X-N8N-API-KEY: $N8N_KEY" "https://n8n.ocean-tech.com.mx/api/v1/workflows/ylxPHHe9ymC49FTO" | python3 -c "
 import sys,json
 w=json.load(sys.stdin)
 g=w.get('staticData',{}).get('global',{})
@@ -30,7 +30,7 @@ print(json.loads(urllib.request.urlopen(req,timeout=10).read()).get('result',0))
 
   # Get running exec
   RUNNING=$(curl -s --max-time 8 -H "X-N8N-API-KEY: $N8N_KEY" \
-    "https://n8n.dealbapropiedades.com.mx/api/v1/executions?status=running&limit=1" | python3 -c "
+    "https://n8n.ocean-tech.com.mx/api/v1/executions?status=running&limit=1" | python3 -c "
 import sys,json; d=json.load(sys.stdin).get('data',[]); print(d[0]['id'] if d else '-')
 " 2>/dev/null)
 

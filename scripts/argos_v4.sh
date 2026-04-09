@@ -1,8 +1,8 @@
 #!/bin/zsh
 # 👁️ ARGOS v4 — Monitor Full Catalog Sync (54,391 productos)
 N8N_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwYmJmOWMxNi1iY2QwLTRkZWYtOWJiMy1hZjA0ZjVkNDcyMWQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYjc4MjRjMTAtOTQxMS00ZDhmLTgwNTEtMWYzYzYzNmZmYTBkIiwiaWF0IjoxNzcyMjEyMzYwfQ.oFs4zmce5fdQv-hXHuVdt56pBI9i_24EFk_TBE3WNu8"
-BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
-WF_ID="2rMRq0B9ewvd1lBn"
+BASE="https://n8n.ocean-tech.com.mx/api/v1"
+WF_ID="RvvvqYvwjyLfyPCE"
 CATS=("Videovigilancia" "Radiocomunicación" "Redes e IT" "IoT/GPS/Telemática" "Energía/Herramientas" "Automatización" "Control Acceso" "Det. Fuego" "Marketing" "Cableado" "Audio/Video" "Industria/BMS")
 TOTAL_CATS=12
 BASE_PRODUCTS=2615

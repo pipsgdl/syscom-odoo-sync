@@ -1,7 +1,7 @@
 #!/bin/zsh
 # HERMES — Mensajero de los dioses. Reportes y comunicaciones por correo
 N8N_KEY="${N8N_API_KEY}"
-BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
+BASE="https://n8n.ocean-tech.com.mx/api/v1"
 
 while true; do
   clear

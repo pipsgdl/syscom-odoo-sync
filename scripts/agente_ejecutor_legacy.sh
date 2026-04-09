@@ -1,8 +1,8 @@
 #!/bin/zsh
 # AGENTE 4 - EJECUTOR — Control de Acceso con backoff inteligente
 N8N_KEY="<<N8N_API_KEY>>"
-BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
-WEBHOOK="https://n8n.dealbapropiedades.com.mx/webhook/syscom-trigger-run"
+BASE="https://n8n.ocean-tech.com.mx/api/v1"
+WEBHOOK="https://n8n.ocean-tech.com.mx/webhook/syscom-trigger-run"
 CATS=("Videovigilancia" "Redes" "Radiocomunicación" "Automatización" "Cableado" "Control de Acceso" "Energía" "Detección Incendio" "Sonido y Video" "Herramientas")
 
 LOG="/tmp/ejecutor_log.txt"

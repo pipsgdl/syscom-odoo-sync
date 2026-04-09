@@ -80,7 +80,7 @@ Videovigilancia, Control de Acceso, Energía, Detección de Fuego, Automatizaci�
 
 ### Credenciales (NO incluidas en repo)
 ```
-N8N_URL=https://n8n.dealbapropiedades.com.mx
+N8N_URL=https://n8n.ocean-tech.com.mx
 ODOO_URL=https://ocean-tech.odoo.com
 ODOO_DB=ocean-tech
 ODOO_UID=2

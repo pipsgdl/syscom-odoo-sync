@@ -3,9 +3,9 @@
 # Dispara via webhook, espera nueva ejecución, repite
 
 N8N_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwYmJmOWMxNi1iY2QwLTRkZWYtOWJiMy1hZjA0ZjVkNDcyMWQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYjc4MjRjMTAtOTQxMS00ZDhmLTgwNTEtMWYzYzYzNmZmYTBkIiwiaWF0IjoxNzcyMjEyMzYwfQ.oFs4zmce5fdQv-hXHuVdt56pBI9i_24EFk_TBE3WNu8"
-BASE="https://n8n.dealbapropiedades.com.mx/api/v1"
-WEBHOOK="https://n8n.dealbapropiedades.com.mx/webhook/syscom-sync-v3"
-WF_ID="2rMRq0B9ewvd1lBn"
+BASE="https://n8n.ocean-tech.com.mx/api/v1"
+WEBHOOK="https://n8n.ocean-tech.com.mx/webhook/syscom-sync-v3"
+WF_ID="RvvvqYvwjyLfyPCE"
 CATS=("Videovigilancia" "Radiocomunicación" "Redes e IT" "IoT/GPS/Telemática" "Energía/Herramientas" "Automatización" "Control Acceso" "Det. Fuego" "Marketing" "Cableado" "Audio/Video" "Industria/BMS")
 TOTAL_CATS=12
 TOTAL_PAGES=913

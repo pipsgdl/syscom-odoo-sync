@@ -17,7 +17,7 @@ conversation_history = []
 def get_system_context():
     try:
         req = urllib.request.Request(
-            f"https://n8n.dealbapropiedades.com.mx/api/v1/workflows/ylxPHHe9ymC49FTO",
+            f"https://n8n.ocean-tech.com.mx/api/v1/workflows/ylxPHHe9ymC49FTO",
             headers={"X-N8N-API-KEY": N8N_KEY})
         with urllib.request.urlopen(req, timeout=8) as r:
             w = json.loads(r.read())
@@ -25,7 +25,7 @@ def get_system_context():
         cat = int(g.get('categoryIndex', 0))
 
         req2 = urllib.request.Request(
-            "https://n8n.dealbapropiedades.com.mx/api/v1/executions?workflowId=ylxPHHe9ymC49FTO&limit=5",
+            "https://n8n.ocean-tech.com.mx/api/v1/executions?workflowId=ylxPHHe9ymC49FTO&limit=5",
             headers={"X-N8N-API-KEY": N8N_KEY})
         with urllib.request.urlopen(req2, timeout=8) as r2:
             execs = json.loads(r2.read()).get('data', [])
@@ -51,7 +51,7 @@ def get_system_context():
             "ultimas_5_ejecuciones": exec_summary,
             "errores_en_ultimas_5": errors_recent,
             "workflow_activo": w.get('active', False),
-            "n8n_url": "https://n8n.dealbapropiedades.com.mx",
+            "n8n_url": "https://n8n.ocean-tech.com.mx",
             "odoo_url": "https://ocean-tech-0326.odoo.com"
         }
     except Exception as e:
