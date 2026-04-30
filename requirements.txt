@@ -1,0 +1,4 @@
+# Ingram → Odoo sync requirements
+# Instalar en venv: python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+
+curl_cffi>=0.7.0      # impersona TLS de Chrome para esquivar Akamai bloqueo

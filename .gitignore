@@ -6,3 +6,11 @@ n8n_cookies.txt
 __pycache__/
 *.pyc
 .DS_Store
+
+# Ingram sync — tokens y cache (NO committear)
+scripts/.ingram_token_cache.json
+scripts/.tc_cache.json
+scripts/ingram_sync_progress.json
+.env
+.env.local
+.venv/
