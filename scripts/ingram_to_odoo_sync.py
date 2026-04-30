@@ -372,19 +372,32 @@ def ingram_search(access_token, keyword="", page=1, size=100, vendor=None,
 
 
 def download_image_b64(url):
+    """Descargar imagen del CDN Ingram. IMPORTANTE: el CDN hace content-negotiation y
+    por defecto sirve AVIF (no soportado por Odoo). Forzamos JPEG con Accept header."""
     if not url:
         return None
     try:
         if HAS_CFFI:
-            r = cffi_requests.get(url, impersonate="chrome120", timeout=20)
+            r = cffi_requests.get(url, impersonate="chrome120", timeout=20,
+                                  headers={"Accept": "image/jpeg,image/png"})
             if r.status_code == 200 and len(r.content) > 500:
-                return base64.b64encode(r.content).decode()
+                # Validar que sea JPEG/PNG real (magic bytes)
+                magic = r.content[:8]
+                is_jpeg = magic[:3] == b'\xff\xd8\xff'
+                is_png  = magic[:8] == b'\x89PNG\r\n\x1a\n'
+                if is_jpeg or is_png:
+                    return base64.b64encode(r.content).decode()
         else:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "image/jpeg,image/png",
+            })
             with urllib.request.urlopen(req, timeout=20, context=ctx) as r:
                 data = r.read()
                 if data and len(data) > 500:
-                    return base64.b64encode(data).decode()
+                    magic = data[:8]
+                    if magic[:3] == b'\xff\xd8\xff' or magic[:8] == b'\x89PNG\r\n\x1a\n':
+                        return base64.b64encode(data).decode()
     except Exception:
         pass
     return None
@@ -593,13 +606,27 @@ def process_item(item, odoo, tc, dry_run=False, stats=None):
         vals["website_description"] = f"<div>{long_desc}</div>"
 
     # Imagen solo si nuevo o sin imagen
+    img_b64 = None
     if image_url and (is_new or not has_image):
         img_b64 = download_image_b64(image_url)
         if img_b64:
             vals["image_1920"] = img_b64
 
     # Crear o actualizar
-    pid = odoo.upsert_product(vals, existing_id=product_id)
+    try:
+        pid = odoo.upsert_product(vals, existing_id=product_id)
+    except Exception as e:
+        # Si falla por imagen, reintentar sin imagen
+        if "image" in str(e).lower() or "decoded" in str(e).lower():
+            vals.pop("image_1920", None)
+            try:
+                pid = odoo.upsert_product(vals, existing_id=product_id)
+            except Exception as e2:
+                log(f"  ERROR upsert (sin imagen): {e2}")
+                return "error_upsert"
+        else:
+            log(f"  ERROR upsert: {e}")
+            return "error_upsert"
     if not pid:
         return "error_upsert"
 
