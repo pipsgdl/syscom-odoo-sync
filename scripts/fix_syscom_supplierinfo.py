@@ -26,9 +26,7 @@ Variables .env requeridas:
 
 import json
 import xmlrpc.client
-import urllib.request
 import urllib.parse
-import urllib.error
 import ssl
 import time
 import sys
@@ -36,6 +34,16 @@ import os
 from datetime import datetime
 from pathlib import Path
 from collections import deque
+
+# curl_cffi requerido para esquivar Akamai TLS-fingerprint en Syscom
+try:
+    from curl_cffi import requests as cffi_requests
+    HAS_CFFI = True
+except ImportError:
+    HAS_CFFI = False
+    print("⚠️  curl_cffi no instalado. Akamai bloqueará Syscom auth.")
+    print("    Instala: source .venv/bin/activate && pip install curl_cffi")
+    sys.exit(1)
 
 # === CONFIG ===
 SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -63,7 +71,7 @@ for ep in ENV_PATHS:
 SYSCOM_CLIENT_ID = os.environ.get("SYSCOM_CLIENT_ID", "")
 SYSCOM_CLIENT_SECRET = os.environ.get("SYSCOM_CLIENT_SECRET", "")
 SYSCOM_TOKEN_URL = "https://developers.syscom.mx/oauth/token"
-SYSCOM_PRODUCTO_URL = "https://developers.syscom.mx/api/v1/productos"
+SYSCOM_PRODUCTOS_SEARCH = "https://developers.syscom.mx/api/v1/productos"
 
 # Odoo IDs
 SYSCOM_SUPPLIER_ID = 117
@@ -72,7 +80,33 @@ CURRENCY_MXN = 33
 # Rate limit Syscom
 RATE_LIMIT_PER_MIN = 55  # margen de seguridad bajo cap 60
 
+# TC USD→MXN (para productos Syscom sin moneda definida — la mayoría son USD)
+TC_USD_MXN_FALLBACK = 17.50
+
 ctx = ssl.create_default_context()
+
+
+def get_tc_usd_mxn():
+    """Obtener TC del día (cache simple)."""
+    cache_file = os.path.join(SCRIPTS_DIR, ".tc_cache.json")
+    if os.path.exists(cache_file):
+        try:
+            c = json.load(open(cache_file))
+            if c.get("date") == datetime.now().strftime("%Y-%m-%d"):
+                return c["rate"]
+        except Exception:
+            pass
+    try:
+        r = cffi_requests.get("https://open.er-api.com/v6/latest/USD",
+            impersonate="chrome120", timeout=15)
+        if r.status_code == 200:
+            rate = float(r.json()["rates"]["MXN"])
+            json.dump({"date": datetime.now().strftime("%Y-%m-%d"),
+                       "rate": rate}, open(cache_file, "w"))
+            return rate
+    except Exception:
+        pass
+    return TC_USD_MXN_FALLBACK
 
 
 def log(msg, also_print=True):
@@ -109,43 +143,56 @@ class SyscomClient:
     def get_token(self):
         if self.token and self.token_expires > time.time() + 60:
             return self.token
-        body = urllib.parse.urlencode({
-            "grant_type": "client_credentials",
-            "client_id": SYSCOM_CLIENT_ID,
-            "client_secret": SYSCOM_CLIENT_SECRET,
-        }).encode()
-        req = urllib.request.Request(SYSCOM_TOKEN_URL, data=body, method="POST",
-            headers={"Content-Type": "application/x-www-form-urlencoded"})
-        with urllib.request.urlopen(req, timeout=30, context=ctx) as r:
-            d = json.loads(r.read().decode())
+        # Akamai bloquea urllib — usar curl_cffi
+        r = cffi_requests.post(SYSCOM_TOKEN_URL,
+            data={
+                "grant_type": "client_credentials",
+                "client_id": SYSCOM_CLIENT_ID,
+                "client_secret": SYSCOM_CLIENT_SECRET,
+            },
+            impersonate="chrome120", timeout=30)
+        if r.status_code != 200:
+            raise Exception(f"Auth Syscom {r.status_code}: {r.text[:200]}")
+        d = r.json()
         self.token = d["access_token"]
         self.token_expires = time.time() + int(d.get("expires_in", 3600))
         return self.token
 
-    def get_product(self, modelo):
-        """GET /api/v1/productos/{modelo} → dict o None si 404."""
+    def search_product(self, sku):
+        """GET /productos?busqueda={sku} → busca por SKU/modelo, retorna primer match exacto.
+        Si encuentra match exacto en 'modelo', devuelve el dict del producto."""
         self._rate_limit_wait()
-        url = f"{SYSCOM_PRODUCTO_URL}/{urllib.parse.quote(modelo, safe='')}"
-        req = urllib.request.Request(url, headers={
-            "Authorization": f"Bearer {self.get_token()}",
-            "Accept": "application/json",
-        })
+        url = f"{SYSCOM_PRODUCTOS_SEARCH}?busqueda={urllib.parse.quote(sku, safe='')}"
         try:
-            with urllib.request.urlopen(req, timeout=20, context=ctx) as r:
-                return json.loads(r.read().decode())
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                return None
-            if e.code == 429:
-                log(f"  Syscom 429 — esperando 30s")
-                time.sleep(30)
-                return self.get_product(modelo)
-            if e.code == 401:
-                self.token = None
-                return self.get_product(modelo)
+            r = cffi_requests.get(url, headers={
+                "Authorization": f"Bearer {self.get_token()}",
+                "Accept": "application/json",
+            }, impersonate="chrome120", timeout=20)
+        except Exception:
             return None
-        except Exception as e:
+        if r.status_code == 429:
+            log(f"  Syscom 429 — esperando 30s")
+            time.sleep(30)
+            return self.search_product(sku)
+        if r.status_code == 401:
+            self.token = None
+            return self.search_product(sku)
+        if r.status_code != 200:
             return None
+        try:
+            d = r.json()
+        except Exception:
+            return None
+        prods = d.get("productos") or d.get("data") or (d if isinstance(d, list) else [])
+        if not isinstance(prods, list) or not prods:
+            return None
+        # Buscar match exacto por modelo (case insensitive)
+        sku_up = sku.strip().upper()
+        for p in prods:
+            if str(p.get("modelo", "")).strip().upper() == sku_up:
+                return p
+        # Si no hay match exacto, NO devolvemos nada (evitamos falsos positivos)
+        return None
 
 
 # =============================================================================
@@ -334,28 +381,40 @@ def main():
         "processed_ids": list(processed_ids),
     }
 
+    # TC del día (la mayoría de precios Syscom son en USD)
+    tc = get_tc_usd_mxn()
+    log(f"TC USD/MXN: {tc:.4f}")
+
     log(f"Procesando {len(candidatos)} productos (rate {RATE_LIMIT_PER_MIN}/min)")
 
     for i, c in enumerate(candidatos):
         sku = c["default_code"]
         try:
-            data = syscom.get_product(sku)
+            data = syscom.search_product(sku)
             if not data:
                 stats["not_found"] += 1
             elif isinstance(data, dict):
-                # Syscom devuelve precio en USD o MXN según producto
-                # Campo precios.precio_descuento (mejor para distribuidor)
+                # En la búsqueda, el precio viene en precio_descuento (USD si moneda=null)
+                # Probar varias rutas
                 precio = 0
+                moneda = None
                 if "precios" in data and isinstance(data["precios"], dict):
                     precio = float(data["precios"].get("precio_descuento") or
                                    data["precios"].get("precio_lista") or 0)
+                elif "precio_descuento" in data:
+                    precio = float(data.get("precio_descuento") or 0)
                 elif "precio" in data:
                     precio = float(data.get("precio") or 0)
-                if precio > 0:
+                moneda = data.get("moneda") or "USD"   # Syscom default = USD
+
+                # Convertir a MXN si necesario
+                precio_mxn = precio if moneda == "MXN" else precio * tc
+
+                if precio_mxn > 0:
                     if dry_run:
-                        log(f"  [DRY] MATCH {sku:<25} Syscom precio=${precio:.2f}")
+                        log(f"  [DRY] MATCH {sku:<25} ${precio:.2f} {moneda} → ${precio_mxn:.2f} MXN")
                     else:
-                        odoo.upsert_supplier(c["id"], sku, precio)
+                        odoo.upsert_supplier(c["id"], sku, precio_mxn)
                     stats["matched"] += 1
                 else:
                     stats["not_found"] += 1
