@@ -441,25 +441,52 @@ class OdooSync:
                     raise
         return None
 
-    def preload_skus(self):
-        """Cargar default_code de productos existentes para matching rapido."""
+    def preload_skus(self, with_supplier_data=False):
+        """Cargar default_code de productos existentes para matching rapido.
+        Si with_supplier_data=True, también carga supplierinfo Ingram (para modo --diff)."""
         log("Precargando SKUs de Odoo...")
         offset, batch = 0, 2000
         while True:
             time.sleep(0.3)
             prods = self.ex("product.template", "search_read",
                 [[("default_code", "!=", False)]],
-                {"fields": ["id", "default_code", "image_1920"], "offset": offset, "limit": batch})
+                {"fields": ["id", "default_code", "image_1920", "list_price", "standard_price"],
+                 "offset": offset, "limit": batch})
             if not prods:
                 break
             for p in prods:
                 self._sku_cache[p["default_code"].strip().upper()] = {
-                    "id": p["id"], "has_image": bool(p["image_1920"])
+                    "id": p["id"], "has_image": bool(p["image_1920"]),
+                    "list_price": p.get("list_price", 0),
+                    "standard_price": p.get("standard_price", 0),
                 }
             offset += len(prods)
             if len(prods) < batch:
                 break
         log(f"  {len(self._sku_cache)} SKUs cargados")
+
+        if with_supplier_data:
+            log("Precargando supplierinfo Ingram (partner=369)...")
+            self._supplier_cache = {}
+            offset = 0
+            while True:
+                time.sleep(0.3)
+                sups = self.ex("product.supplierinfo", "search_read",
+                    [[("partner_id", "=", INGRAM_SUPPLIER_ID)]],
+                    {"fields": ["id", "product_tmpl_id", "product_code", "price"],
+                     "offset": offset, "limit": batch})
+                if not sups:
+                    break
+                for s in sups:
+                    if s.get("product_tmpl_id"):
+                        self._supplier_cache[s["product_tmpl_id"][0]] = {
+                            "id": s["id"], "price": s.get("price", 0),
+                            "product_code": s.get("product_code", ""),
+                        }
+                offset += len(sups)
+                if len(sups) < batch:
+                    break
+            log(f"  {len(self._supplier_cache)} supplierinfo Ingram cargados")
 
     def find_product(self, sku_ingram, vpn):
         """Buscar producto existente en Odoo por:
@@ -542,8 +569,9 @@ def margin_key_from_category(category, subcategory):
     return "default"
 
 
-def process_item(item, odoo, tc, dry_run=False, stats=None):
-    """Procesar un item del catalogo Ingram → Odoo."""
+def process_item(item, odoo, tc, dry_run=False, stats=None, diff_mode=False):
+    """Procesar un item del catalogo Ingram → Odoo.
+    Si diff_mode=True, solo escribe si hay cambio real (precio o supplierinfo)."""
     sku_ingram = (item.get("partNumber") or "").strip()
     vpn = (item.get("manufacturePartNumber") or item.get("exManufacturerpartnumber") or "").strip()
     if not sku_ingram and not vpn:
@@ -560,7 +588,6 @@ def process_item(item, odoo, tc, dry_run=False, stats=None):
     # Stock total
     stock_total = inventory.get("totalAvailableQuantity")
     if stock_total is None:
-        # Sumar warehouseDetails si existe
         whs = inventory.get("warehouseDetails") or []
         stock_total = sum((w.get("quantityAvailable") or 0) for w in whs)
 
@@ -573,6 +600,7 @@ def process_item(item, odoo, tc, dry_run=False, stats=None):
 
     margin_key = margin_key_from_category(category, subcategory)
     p_online, p_menudeo, p_proyecto = calculate_prices_mxn(cost_usd, tc, margin_key)
+    cost_mxn = cost_usd * tc
 
     # Match en Odoo
     found = odoo.find_product(sku_ingram, vpn)
@@ -580,9 +608,48 @@ def process_item(item, odoo, tc, dry_run=False, stats=None):
     product_id = found["id"] if found else None
     has_image = found.get("has_image") if found else False
 
+    # === MODO DIFFERENCIAL ===
+    if diff_mode and not is_new:
+        # Producto existe — solo actualizar si cambió precio o stock significativamente
+        existing_supplier = getattr(odoo, '_supplier_cache', {}).get(product_id)
+        if existing_supplier:
+            old_price = float(existing_supplier.get("price", 0))
+            # Umbral: solo escribir si cambio > $1 MXN o > 0.5%
+            price_changed = abs(cost_mxn - old_price) > 1.0 and abs(cost_mxn - old_price) / max(old_price, 1) > 0.005
+            if not price_changed:
+                if stats is not None:
+                    stats["unchanged"] = stats.get("unchanged", 0) + 1
+                return "unchanged"
+            # Solo actualizar supplierinfo + pricelist (NO recrear producto, NO descargar imagen)
+            if dry_run:
+                log(f"  [DRY-DIFF] PRICE Δ {sku_ingram} ${old_price:.2f}→${cost_mxn:.2f} "
+                    f"({(cost_mxn-old_price)/max(old_price,1)*100:+.1f}%)")
+                stats["price_changed"] = stats.get("price_changed", 0) + 1
+                return "dry"
+            try:
+                # Actualizar supplierinfo
+                odoo.ex("product.supplierinfo", "write",
+                    [[existing_supplier["id"]],
+                     {"price": cost_mxn, "product_code": sku_ingram}])
+                # Actualizar las 3 pricelists
+                odoo.set_pricelist(PRICELIST_ONLINE, product_id, p_online)
+                odoo.set_pricelist(PRICELIST_MENUDEO, product_id, p_menudeo)
+                odoo.set_pricelist(PRICELIST_PROYECTO, product_id, p_proyecto)
+                # Actualizar standard_price + list_price del producto
+                odoo.ex("product.template", "write",
+                    [[product_id], {"standard_price": cost_mxn, "list_price": p_online}])
+                # Actualizar cache local
+                existing_supplier["price"] = cost_mxn
+                if stats is not None:
+                    stats["price_changed"] = stats.get("price_changed", 0) + 1
+                return "ok_diff"
+            except Exception as e:
+                log(f"  ERROR diff {sku_ingram}: {e}")
+                return "error_upsert"
+
     if dry_run:
         log(f"  [DRY] {'NEW' if is_new else 'UPD'} {sku_ingram} VPN={vpn} {vendor} "
-            f"cost=${cost_usd:.2f}USD={cost_usd*tc:.2f}MXN online={p_online:.2f} stock={stock_total}")
+            f"cost=${cost_usd:.2f}USD={cost_mxn:.2f}MXN online={p_online:.2f} stock={stock_total}")
         if stats is not None:
             stats["new" if is_new else "updated"] = stats.get("new" if is_new else "updated", 0) + 1
         return "dry"
@@ -667,6 +734,7 @@ def main():
     dry_run = "--dry-run" in sys.argv
     status_only = "--status" in sys.argv
     refresh_only = "--refresh-token" in sys.argv
+    diff_mode = "--diff" in sys.argv
     limit = None
     vendor_filter = None
     keyword = ""
@@ -699,7 +767,7 @@ def main():
         return
 
     log("=" * 70)
-    log(f"INGRAM → Odoo Sync (dry_run={dry_run}, limit={limit}, vendor={vendor_filter})")
+    log(f"INGRAM → Odoo Sync (dry_run={dry_run}, diff={diff_mode}, limit={limit}, vendor={vendor_filter})")
     log("=" * 70)
 
     # 1) Token
@@ -721,19 +789,16 @@ def main():
         return
     cfg = json.load(open(CONFIG_PATH))
     odoo = OdooSync(cfg)
-    if not dry_run:
-        odoo.connect()
-        odoo.preload_skus()
-    else:
-        # En dry-run conectamos pero no escribimos
-        odoo.connect()
-        odoo.preload_skus()
+    odoo.connect()
+    odoo.preload_skus(with_supplier_data=diff_mode)
 
     # 4) Iterar paginas
     stats = {"processed": 0, "new": 0, "updated": 0, "errors": 0,
              "skipped_no_price": 0, "skipped_no_sku": 0,
+             "unchanged": 0, "price_changed": 0,
              "started_at": datetime.now().isoformat(),
              "tc": tc, "tc_source": tc_source,
+             "diff_mode": diff_mode,
              "vendor_filter": vendor_filter, "limit": limit}
 
     page = 1
@@ -757,7 +822,7 @@ def main():
 
         for item in items:
             try:
-                r = process_item(item, odoo, tc, dry_run=dry_run, stats=stats)
+                r = process_item(item, odoo, tc, dry_run=dry_run, stats=stats, diff_mode=diff_mode)
                 if r == "skip_no_price":
                     stats["skipped_no_price"] += 1
                 elif r == "skip_no_sku":
@@ -788,12 +853,15 @@ def main():
     save_progress(stats)
     log("=" * 70)
     log("RESUMEN")
-    log(f"  Procesados:    {stats['processed']}")
-    log(f"  Nuevos:        {stats['new']}")
-    log(f"  Actualizados:  {stats['updated']}")
-    log(f"  Sin precio:    {stats['skipped_no_price']}")
-    log(f"  Sin SKU:       {stats['skipped_no_sku']}")
-    log(f"  Errores:       {stats['errors']}")
+    log(f"  Procesados:       {stats['processed']}")
+    log(f"  Nuevos:           {stats['new']}")
+    log(f"  Actualizados:     {stats['updated']}")
+    if diff_mode:
+        log(f"  Cambios precio:   {stats.get('price_changed',0)}")
+        log(f"  Sin cambios:      {stats.get('unchanged',0)}")
+    log(f"  Sin precio:       {stats['skipped_no_price']}")
+    log(f"  Sin SKU:          {stats['skipped_no_sku']}")
+    log(f"  Errores:          {stats['errors']}")
     log("=" * 70)
 
 

@@ -237,6 +237,30 @@ class OdooSync:
                 break
         log(f"  {len(self._sku_cache)} SKUs cargados")
 
+    def preload_supplier_data(self):
+        """Cargar supplierinfo CT existentes (para modo --diff)."""
+        log("Precargando supplierinfo CT (partner=93)...")
+        self._supplier_cache = {}
+        offset, batch = 0, 2000
+        while True:
+            time.sleep(0.3)
+            sups = self.ex("product.supplierinfo", "search_read",
+                [[("partner_id", "=", CT_SUPPLIER_ID)]],
+                {"fields": ["id", "product_tmpl_id", "product_code", "price"],
+                 "offset": offset, "limit": batch})
+            if not sups:
+                break
+            for s in sups:
+                if s.get("product_tmpl_id"):
+                    self._supplier_cache[s["product_tmpl_id"][0]] = {
+                        "id": s["id"], "price": s.get("price", 0),
+                        "product_code": s.get("product_code", ""),
+                    }
+            offset += len(sups)
+            if len(sups) < batch:
+                break
+        log(f"  {len(self._supplier_cache)} supplierinfo CT cargados")
+
     def find_product(self, vpn, clave):
         if vpn and vpn.strip().upper() in self._sku_cache:
             return self._sku_cache[vpn.strip().upper()]
@@ -318,15 +342,15 @@ def margin_key_from_category(categoria, subcategoria):
     return "default"
 
 
-def process_product(p, odoo, dry_run=False, stats=None):
-    """Procesar 1 producto CT → Odoo."""
+def process_product(p, odoo, dry_run=False, stats=None, diff_mode=False):
+    """Procesar 1 producto CT → Odoo.
+    Si diff_mode=True, solo actualiza si hay cambio real en precio."""
     clave = (p.get('clave') or '').strip()
     vpn = (p.get('numParte') or '').strip()
     modelo = (p.get('modelo') or '').strip()
     if not clave and not vpn:
         return "skip_no_sku"
 
-    # CT da precio en MXN nativo (cuando moneda=MXN). Si moneda=USD aplica tipoCambio.
     precio_raw = p.get('precio') or 0
     moneda = p.get('moneda', 'MXN')
     tc = p.get('tipoCambio') or 1
@@ -334,14 +358,12 @@ def process_product(p, odoo, dry_run=False, stats=None):
     if cost_mxn <= 0:
         return "skip_no_price"
 
-    # Stock = suma de todas las sucursales
     existencias = p.get('existencia') or {}
     if isinstance(existencias, dict):
         stock_total = sum((v or 0) for v in existencias.values() if isinstance(v, (int, float)))
     else:
         stock_total = 0
 
-    # Solo procesar si activo
     if not p.get('activo'):
         return "skip_inactive"
 
@@ -354,9 +376,42 @@ def process_product(p, odoo, dry_run=False, stats=None):
     margin_key = margin_key_from_category(categoria, subcategoria)
     p_online, p_menudeo, p_proyecto = calculate_prices(cost_mxn, margin_key)
 
-    # Match en Odoo (prioridad: VPN → clave CT → modelo)
     product_id = odoo.find_product(vpn, clave) or odoo.find_product(modelo, None)
     is_new = product_id is None
+
+    # === MODO DIFFERENCIAL ===
+    if diff_mode and not is_new:
+        existing_supplier = getattr(odoo, '_supplier_cache', {}).get(product_id)
+        if existing_supplier:
+            old_price = float(existing_supplier.get("price", 0))
+            price_changed = abs(cost_mxn - old_price) > 1.0 and abs(cost_mxn - old_price) / max(old_price, 1) > 0.005
+            if not price_changed:
+                if stats is not None:
+                    stats["unchanged"] = stats.get("unchanged", 0) + 1
+                return "unchanged"
+            if dry_run:
+                log(f"  [DRY-DIFF] PRICE Δ {clave} ${old_price:.2f}→${cost_mxn:.2f} "
+                    f"({(cost_mxn-old_price)/max(old_price,1)*100:+.1f}%)")
+                stats["price_changed"] = stats.get("price_changed", 0) + 1
+                return "dry"
+            try:
+                odoo.ex("product.supplierinfo", "write",
+                    [[existing_supplier["id"]],
+                     {"price": cost_mxn, "product_code": clave}])
+                odoo.set_pricelist(PRICELIST_ONLINE, product_id, p_online)
+                odoo.set_pricelist(PRICELIST_MENUDEO, product_id, p_menudeo)
+                odoo.set_pricelist(PRICELIST_PROYECTO, product_id, p_proyecto)
+                odoo.ex("product.template", "write",
+                    [[product_id], {"standard_price": cost_mxn, "list_price": p_online,
+                                    "is_published": stock_total > 0,
+                                    "website_published": stock_total > 0}])
+                existing_supplier["price"] = cost_mxn
+                if stats is not None:
+                    stats["price_changed"] = stats.get("price_changed", 0) + 1
+                return "ok_diff"
+            except Exception as e:
+                log(f"  ERROR diff {clave}: {e}")
+                return "error"
 
     if dry_run:
         log(f"  [DRY] {'NEW' if is_new else 'UPD'} clave={clave:<12} vpn={vpn:<20} {marca[:15]:<15} "
@@ -429,6 +484,7 @@ def main():
     status_only = "--status" in sys.argv
     refresh_only = "--refresh-cache" in sys.argv
     use_local = "--use-local" in sys.argv
+    diff_mode = "--diff" in sys.argv
     limit = None
 
     for i, arg in enumerate(sys.argv):
@@ -450,7 +506,7 @@ def main():
         return
 
     log("=" * 70)
-    log(f"CT → Odoo Sync (dry_run={dry_run}, limit={limit}, use_local={use_local})")
+    log(f"CT → Odoo Sync (dry_run={dry_run}, diff={diff_mode}, limit={limit}, use_local={use_local})")
     log("=" * 70)
 
     # 1) Cache
@@ -477,16 +533,20 @@ def main():
     odoo = OdooSync(cfg)
     odoo.connect()
     odoo.preload_skus()
+    if diff_mode:
+        odoo.preload_supplier_data()
 
     # 3) Procesar
     stats = {"processed": 0, "new": 0, "updated": 0, "errors": 0,
              "skipped_no_price": 0, "skipped_no_sku": 0, "skipped_inactive": 0,
+             "unchanged": 0, "price_changed": 0,
+             "diff_mode": diff_mode,
              "started_at": datetime.now().isoformat(),
              "limit": limit}
 
     for i, p in enumerate(products):
         try:
-            r = process_product(p, odoo, dry_run=dry_run, stats=stats)
+            r = process_product(p, odoo, dry_run=dry_run, stats=stats, diff_mode=diff_mode)
             if r == "skip_no_price":
                 stats["skipped_no_price"] += 1
             elif r == "skip_no_sku":
@@ -513,13 +573,16 @@ def main():
 
     log("=" * 70)
     log("RESUMEN")
-    log(f"  Procesados:    {stats['processed']}")
-    log(f"  Nuevos:        {stats['new']}")
-    log(f"  Actualizados:  {stats['updated']}")
-    log(f"  Sin precio:    {stats['skipped_no_price']}")
-    log(f"  Sin SKU:       {stats['skipped_no_sku']}")
-    log(f"  Inactivos:     {stats['skipped_inactive']}")
-    log(f"  Errores:       {stats['errors']}")
+    log(f"  Procesados:       {stats['processed']}")
+    log(f"  Nuevos:           {stats['new']}")
+    log(f"  Actualizados:     {stats['updated']}")
+    if diff_mode:
+        log(f"  Cambios precio:   {stats.get('price_changed',0)}")
+        log(f"  Sin cambios:      {stats.get('unchanged',0)}")
+    log(f"  Sin precio:       {stats['skipped_no_price']}")
+    log(f"  Sin SKU:          {stats['skipped_no_sku']}")
+    log(f"  Inactivos:        {stats['skipped_inactive']}")
+    log(f"  Errores:          {stats['errors']}")
     log("=" * 70)
 
 
