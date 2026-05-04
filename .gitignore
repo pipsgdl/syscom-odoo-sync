@@ -14,3 +14,5 @@ scripts/ingram_sync_progress.json
 .env
 .env.local
 .venv/
+.exel_session.json
+scripts/exel_sync_progress.json
