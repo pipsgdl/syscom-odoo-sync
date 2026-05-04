@@ -73,6 +73,7 @@ CONFIG_PATH = "/Volumes/HIKSEMI 512/Antigravity/mcp-odoo/odoo_config_prod.json"
 LOG_FILE = os.path.join(LOGS_DIR, f"exel_sync_{datetime.now().strftime('%Y%m%d_%H%M')}.log")
 PROGRESS_FILE = os.path.join(SCRIPTS_DIR, "exel_sync_progress.json")
 SESSION_FILE = os.path.join(REPO_DIR, ".exel_session.json")
+SKUS_FILE = os.path.join(REPO_DIR, ".exel_skus.json")  # generado por exel_collect_skus.py
 
 EXEL_BASE = "https://www.exel.com.mx/xlstore"
 EXEL_LIST_URL = f"{EXEL_BASE}/Productos/buscar.aspx?IdCategoria={{cat_id}}"
@@ -206,7 +207,22 @@ def is_session_valid(sess):
 SKU_PATTERN = re.compile(r'/Productos/Detalle/([A-Z0-9]{6,20})')
 
 def fetch_category_skus(sess, cat_id, retries=2):
-    """Listar todos los SKUs visibles en una categoría."""
+    """Listar SKUs de una categoría.
+    Estrategia 1 (preferida): leer de .exel_skus.json generado por exel_collect_skus.py
+    (Playwright + paginación PostBack ASP.NET).
+    Estrategia 2 (fallback): single GET — solo trae 54 productos del header."""
+    # Estrategia 1: archivo precolectado
+    if os.path.exists(SKUS_FILE):
+        try:
+            data = json.load(open(SKUS_FILE))
+            by_cat = data.get("by_category", {})
+            skus = by_cat.get(str(cat_id), [])
+            if skus:
+                return skus
+        except Exception as e:
+            log(f"  WARN cargando SKUs precolectados: {e}")
+
+    # Estrategia 2: fallback a scraping single GET (solo 54 SKUs del header)
     url = EXEL_LIST_URL.format(cat_id=cat_id)
     for attempt in range(retries):
         try:

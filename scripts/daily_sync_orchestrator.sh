@@ -75,14 +75,15 @@ log "═════════════════════════
 log "3/3 — Exel del Norte → Odoo (modo --diff)"
 log "════════════════════════════════════════════════════════════════════════"
 
-# Refrescar cookies via Playwright (cookies ASP.NET caducan en ~20 min)
-log "Refrescando cookies Exel..."
-EXEL_LOGIN_LOG="$LOG_DIR/exel_login_${TIMESTAMP}.log"
-python scripts/exel_login_browser.py > "$EXEL_LOGIN_LOG" 2>&1
-EXEL_LOGIN_EXIT=$?
-log "Login Exel exit=$EXEL_LOGIN_EXIT"
+# Colectar SKUs de Exel con Playwright (paginación ASP.NET PostBack)
+# También refresca cookies de sesión (caducan ~20 min)
+log "Colectando SKUs Exel + refrescando cookies (Playwright)..."
+EXEL_COLLECT_LOG="$LOG_DIR/exel_collect_${TIMESTAMP}.log"
+python scripts/exel_collect_skus.py > "$EXEL_COLLECT_LOG" 2>&1
+EXEL_COLLECT_EXIT=$?
+log "Collect Exel exit=$EXEL_COLLECT_EXIT"
 
-if [ $EXEL_LOGIN_EXIT -eq 0 ]; then
+if [ $EXEL_COLLECT_EXIT -eq 0 ]; then
   EXEL_LOG="$LOG_DIR/exel_diff_${TIMESTAMP}.log"
   python scripts/exel_to_odoo_sync.py --diff > "$EXEL_LOG" 2>&1
   EXEL_EXIT=$?
@@ -97,8 +98,8 @@ print(f'EXE proc={d.get(\"processed\",0):>5} new={d.get(\"new\",0):>4} chg={d.ge
     log "  $EXEL_RESUMEN"
   fi
 else
-  log "⚠️  Skip sync Exel — login Playwright falló"
-  EXEL_RESUMEN="EXE login_failed"
+  log "⚠️  Skip sync Exel — collect Playwright falló"
+  EXEL_RESUMEN="EXE collect_failed"
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
