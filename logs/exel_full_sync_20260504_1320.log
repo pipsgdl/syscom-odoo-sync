@@ -1,0 +1,63 @@
+[13:20:41] ======================================================================
+[13:20:41] EXEL → Odoo Sync (dry=False, diff=False, cat=None, limit=None)
+[13:20:41] ======================================================================
+[13:20:42] Conectado Odoo UID=2
+[13:20:42] Precargando SKUs Odoo...
+[13:21:01]   59400 SKUs Odoo cargados
+[13:21:01] 
+=== Categoría 1: Computo (margin=computo) ===
+[13:21:02]   54 SKUs encontrados
+[13:22:36]   Progreso: 50 (new=19 upd=19 chg=0 err=0)
+[13:22:42] 
+=== Categoría 2: Impresion y Multifuncionales (margin=impresion) ===
+[13:22:43]   54 SKUs encontrados
+[13:22:43] 
+=== Categoría 3: Consumibles (margin=consumibles) ===
+[13:22:43]   54 SKUs encontrados
+[13:22:43] 
+=== Categoría 4: Almacenamiento (margin=almacenamiento) ===
+[13:22:44]   54 SKUs encontrados
+[13:22:44] 
+=== Categoría 5: Electronica de Consumo (margin=default) ===
+[13:22:44]   54 SKUs encontrados
+[13:22:44] 
+=== Categoría 6: Camara Video y Proyeccion (margin=audiovideo) ===
+[13:22:45]   54 SKUs encontrados
+[13:22:45] 
+=== Categoría 7: Audio y Entretenimiento (margin=audiovideo) ===
+[13:22:45]   54 SKUs encontrados
+[13:22:45] 
+=== Categoría 8: Redes (margin=networking) ===
+[13:22:45]   54 SKUs encontrados
+[13:22:45] 
+=== Categoría 9: Software y Garantias (margin=software) ===
+[13:22:46]   54 SKUs encontrados
+[13:22:46] 
+=== Categoría 10: Energia y Cables (margin=energia) ===
+[13:22:46]   54 SKUs encontrados
+[13:22:46] 
+=== Categoría 11: Telefonia (margin=default) ===
+[13:22:47]   54 SKUs encontrados
+[13:22:47] 
+=== Categoría 12: Servidores y Almacenamiento (margin=almacenamiento) ===
+[13:22:47]   54 SKUs encontrados
+[13:22:47] 
+=== Categoría 13: Papel (margin=papel_oficina) ===
+[13:22:47]   54 SKUs encontrados
+[13:22:47] 
+=== Categoría 14: Oficina y Escolar (margin=papel_oficina) ===
+[13:22:48]   54 SKUs encontrados
+[13:22:48] 
+=== Categoría 15: Puntos de Venta (margin=pos) ===
+[13:22:48]   54 SKUs encontrados
+[13:22:48] 
+=== Categoría 16: Videovigilancia (margin=videovig) ===
+[13:22:49]   54 SKUs encontrados
+[13:22:49] ======================================================================
+[13:22:49] RESUMEN
+[13:22:49]   Procesados:    54
+[13:22:49]   Nuevos:        20
+[13:22:49]   Actualizados:  21
+[13:22:49]   Sin precio:    13
+[13:22:49]   Errores:       0
+[13:22:49] ======================================================================

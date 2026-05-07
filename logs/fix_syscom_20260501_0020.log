@@ -1,0 +1,25 @@
+[00:20:21] ======================================================================
+[00:20:21] FIX SYSCOM SUPPLIERINFO (dry=True, limit=5, resume=False)
+[00:20:21] ======================================================================
+[00:20:21] Conectado a Odoo UID=2
+[00:20:21] Token Syscom OK
+[00:20:21] Buscando productos sin supplierinfo Syscom...
+[00:20:41]   59897 productos con default_code
+[00:20:41] Cargando supplierinfo Syscom existentes...
+[00:20:42]   4284 productos YA tienen Syscom
+[00:20:42]   → 55629 productos SIN supplierinfo Syscom (a procesar)
+[00:20:43] TC USD/MXN: 17.5021
+[00:20:43] Procesando 55629 productos (rate 55/min)
+[00:20:43]   [DRY] MATCH PP-2C-GP350               $101.76 USD → $1781.01 MXN
+[00:20:44]   [DRY] MATCH 1361EGI                   $2494.00 USD → $43650.25 MXN
+[00:20:45]   [DRY] MATCH PPKG1WSWH                 $70.40 USD → $1232.15 MXN
+[00:20:45]   [DRY] MATCH DTR-18-0Z                 $1305.65 USD → $22851.62 MXN
+[00:20:46]   [DRY] MATCH 5034                      $47.55 USD → $832.23 MXN
+[00:20:46] Limite 5 alcanzado.
+[00:20:46] ======================================================================
+[00:20:46] RESUMEN
+[00:20:46]   Procesados:   5
+[00:20:46]   Match Syscom: 5  ← supplierinfo creadas
+[00:20:46]   Not found:    0
+[00:20:46]   Errores:      0
+[00:20:46] ======================================================================

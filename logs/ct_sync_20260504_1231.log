@@ -1,0 +1,22 @@
+[12:31:30] ======================================================================
+[12:31:30] CT → Odoo Sync (dry_run=True, diff=True, limit=20, use_local=True)
+[12:31:30] ======================================================================
+[12:31:30] Productos únicos en cache: 5914
+[12:31:31] Conectado a Odoo UID=2
+[12:31:31] Precargando SKUs de Odoo...
+[12:31:51]   59379 SKUs cargados
+[12:31:51] Precargando supplierinfo CT (partner=93)...
+[12:31:53]   5900 supplierinfo CT cargados
+[12:31:53] Limite de 20 alcanzado, deteniendo.
+[12:31:53] ======================================================================
+[12:31:53] RESUMEN
+[12:31:53]   Procesados:       20
+[12:31:53]   Nuevos:           0
+[12:31:53]   Actualizados:     0
+[12:31:53]   Cambios precio:   0
+[12:31:53]   Sin cambios:      20
+[12:31:53]   Sin precio:       0
+[12:31:53]   Sin SKU:          0
+[12:31:53]   Inactivos:        0
+[12:31:53]   Errores:          0
+[12:31:53] ======================================================================

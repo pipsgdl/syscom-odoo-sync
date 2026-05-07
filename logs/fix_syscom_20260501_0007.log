@@ -1,0 +1,5 @@
+[00:07:59] ======================================================================
+[00:07:59] FIX SYSCOM SUPPLIERINFO (dry=False, limit=None, resume=False)
+[00:07:59] ======================================================================
+[00:08:00] Conectado a Odoo UID=2
+[00:08:00] ABORT: error auth Syscom: HTTP Error 403: Forbidden

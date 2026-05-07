@@ -1,0 +1,15 @@
+{
+  "processed": 6040,
+  "new": 27,
+  "updated": 81,
+  "errors": 0,
+  "skipped_no_price": 0,
+  "skipped_no_sku": 0,
+  "skipped_inactive": 0,
+  "unchanged": 3018,
+  "price_changed": 2914,
+  "diff_mode": true,
+  "started_at": "2026-05-07T06:00:34.929243",
+  "limit": null,
+  "completed_at": "2026-05-07T07:21:37.670786"
+}

@@ -1,0 +1,8 @@
+[2026-04-30 19:27:56] Watchdog iniciado. Vigilando PID 41324 (Ingram sync)
+[2026-04-30 19:27:56] Cuando termine, lanzaré fix_syscom_supplierinfo.py
+[2026-05-01 00:06:59] ✓ Ingram sync (PID 41324) terminado.
+[2026-05-01 00:06:59] Esperando 60s extra para asegurar que liberó conexiones Odoo...
+[2026-05-01 00:07:59] Lanzando fix_syscom_supplierinfo.py → /Users/ingfelipe/syscom-odoo-sync/logs/fix_syscom_20260430_1927.log
+[2026-05-01 00:07:59] Fix Syscom lanzado con PID 24620
+[2026-05-01 00:07:59] PID guardado en /tmp/fix_syscom_pid.txt
+[2026-05-01 00:08:29] ⚠ Fix Syscom murió en los primeros 30s. Revisar /Users/ingfelipe/syscom-odoo-sync/logs/fix_syscom_20260430_1927.log

@@ -1,0 +1,34 @@
+[19:00:43] ======================================================================
+[19:00:43] CT → Odoo Sync (dry_run=False, limit=None, use_local=False)
+[19:00:43] ======================================================================
+[19:00:43] Descargando cache CT desde Oracle...
+[19:00:45]   ✓ Cache actualizado: 5914 productos, 13183 keys, generado 2026-05-01 01:00:04
+[19:00:45] Refresh cache OK. Saliendo.
+[19:00:48] ======================================================================
+[19:00:48] CT → Odoo Sync (dry_run=True, limit=10, use_local=True)
+[19:00:48] ======================================================================
+[19:00:49] Productos únicos en cache: 5914
+[19:00:49] Conectado a Odoo UID=2
+[19:00:49] Precargando SKUs de Odoo...
+[19:01:09]   53725 SKUs cargados
+[19:01:09]   [DRY] NEW clave=ACCGAM010    vpn=UGS-V1-BLK-4G        4Gamers         $1055.56MXN online=1408.12 stock=   1
+[19:01:09]   [DRY] NEW clave=COMACR9460   vpn=NX.B17AL.006         ACER            $14310.84MXN online=17762.61 stock=   5
+[19:01:09]   [DRY] NEW clave=MONACR1740   vpn=UM.WE1AA.H01         ACER            $1289.36MXN online=1645.22 stock=  76
+[19:01:09]   [DRY] NEW clave=KITACC010    vpn=EAK030               ACER            $193.33MXN online=264.63 stock=  11
+[19:01:09]   [DRY] NEW clave=KITACC020    vpn=EKW111               ACER            $281.11MXN online=384.78 stock=  36
+[19:01:09]   [DRY] NEW clave=MOUACC010    vpn=EMW211               ACER            $193.33MXN online=264.63 stock=  20
+[19:01:09]   [DRY] NEW clave=MOUACC020    vpn=EMR213               ACER            $260.00MXN online=355.89 stock=  24
+[19:01:09]   [DRY] NEW clave=MOUACC030    vpn=EMR213               ACER            $260.00MXN online=355.89 stock=  55
+[19:01:09]   [DRY] NEW clave=COMACR9740   vpn=NX.B6QAL.003         ACER            $14696.51MXN online=18241.31 stock=  34
+[19:01:09]   [DRY] NEW clave=COMACR9750   vpn=NX.B6QAL.002         ACER            $18167.46MXN online=22549.45 stock=  11
+[19:01:09] Limite de 10 alcanzado, deteniendo.
+[19:01:09] ======================================================================
+[19:01:09] RESUMEN
+[19:01:09]   Procesados:    10
+[19:01:09]   Nuevos:        10
+[19:01:09]   Actualizados:  0
+[19:01:09]   Sin precio:    0
+[19:01:09]   Sin SKU:       0
+[19:01:09]   Inactivos:     0
+[19:01:09]   Errores:       0
+[19:01:09] ======================================================================
