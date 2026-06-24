@@ -1,0 +1,20 @@
+{
+  "_aprobado_por": "Felipe",
+  "_fecha": "2026-06-24",
+  "_nota": "Precio de venta = costo_nojomo * markup + envio. IVA incluido (Nojomo ya lo incluye). Markup VARIABLE por categoria (decision Felipe 2026-06-24).",
+  "_principio": "ticket bajo / alta demanda -> % mayor; commodity comparado en linea -> menor",
+  "default": 1.40,
+  "por_categoria": {
+    "bat": 1.45,
+    "lcd": 1.45,
+    "ac": 1.40,
+    "psc": 1.40,
+    "fan": 1.50,
+    "toner": 1.30,
+    "drum": 1.30
+  },
+  "etiquetas": {
+    "bat": "Baterias", "lcd": "Pantallas", "ac": "Cargadores",
+    "psc": "Fuentes", "fan": "Ventiladores", "toner": "Toner", "drum": "Drum"
+  }
+}

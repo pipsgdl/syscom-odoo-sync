@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.oceantech.nojomo-crawl-watch</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/ingfelipe/syscom-odoo-sync/scripts/nojomo_crawl_watch.sh</string>
+  </array>
+  <key>StartInterval</key><integer>600</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/ingfelipe/Library/Logs/nojomo_crawl_watch.out</string>
+  <key>StandardErrorPath</key><string>/Users/ingfelipe/Library/Logs/nojomo_crawl_watch.err</string>
+</dict>
+</plist>
