@@ -123,6 +123,26 @@ def crawl_flat(s, cat, page, st, seen):
     st["done_listados"].append(page); save_state(st)
     log(f"[{cat}] +{n} productos")
 
+def parse_resultado(hr, sku, cat):
+    # Para bat/ac el precio+stock+nombre+specs viven en la pagina de RESULTADOS (no en producto_X.php)
+    txt = _html.unescape(re.sub(r"\s+"," ", re.sub(r"<[^>]+>"," ", hr)))
+    m = re.search(r"Producto:\s*"+re.escape(sku)+r"\s*\$?\s*([\d,]+)", txt)
+    precio = float(m.group(1).replace(",","")) if m else 0.0
+    pos = m.start() if m else 0
+    after = txt[m.end():m.end()+50] if m else ""
+    stock = "Disponible" if "Disponible" in after else ("Agotado" if "gotad" in after else "")
+    before = txt[max(0,pos-320):pos]
+    nm = re.search(r"(Para .+?)(?=\s+Celdas:|\s+Color:|\s+Voltaje:|\s+Watts:|\s+Tipo:|\s+Conector:)", before)
+    nombre = nm.group(1).strip() if nm else ""
+    specs = {}
+    for k in ["Celdas","Color","Voltaje","Watts","Amperaje","Tipo","Conector","Material"]:
+        mm = re.search(k+r":\s*([^:]+?)(?=\s+[A-Z][a-zá]+:|\s+Producto:|$)", before)
+        if mm: specs[k]=mm.group(1).strip()
+    img = "Img/%s/%s-01_Big.jpg" % ("Baterias" if cat=="bat" else ("Cargadores" if cat=="ac" else cat), sku)
+    return {"sku":sku,"categoria":cat,"nombre":nombre,"precio":precio,"stock":stock,
+            "envio":{}, "specs":specs,"imagenes":[img],
+            "url":f"{B}/producto_{cat}.php?sku={sku}","scraped_at":datetime.now(timezone.utc).isoformat()}
+
 def crawl_marca(s, cat, st, seen):
     home, marca_tpl, res_tpl, _ = MARCA_CATS[cat]
     h=get(s,home)
@@ -141,7 +161,9 @@ def crawl_marca(s, cat, st, seen):
             for sku in skus:
                 open(COMPAT_F,"a").write(json.dumps({"modelo_laptop":modelo,"sku":sku,"categoria":cat,"marca":marca},ensure_ascii=False)+"\n")
                 ncomp+=1
-                scrape_producto(s,sku,cat,seen)
+                if sku not in seen:   # precio/specs DESDE resultados (producto_X.php sale vacio para bat/ac)
+                    open(PROD_F,"a").write(json.dumps(parse_resultado(hr,sku,cat),ensure_ascii=False)+"\n")
+                    seen.add(sku)
             time.sleep(0.15)
         st["done_listados"].append(key); save_state(st)
         log(f"[{cat}] {marca} done · {ncomp} compat · {len(seen)} skus totales")
