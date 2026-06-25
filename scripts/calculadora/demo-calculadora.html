@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ocean Tech — Encuentra tu refacción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --abyss:#0e0e0e; --surf:#1a1919; --surf2:#262626; --line:rgba(255,255,255,.07);
+    --cyan1:#3adffa; --cyan2:#00cbe6; --tit:#fff; --body:#adaaaa;
+    --glow:0 0 40px rgba(58,223,250,.10);
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{background:var(--abyss); color:var(--body); font-family:'Inter',sans-serif; line-height:1.6;
+       min-height:100vh; -webkit-font-smoothing:antialiased;
+       background-image:radial-gradient(1200px 500px at 80% -10%, rgba(0,203,230,.06), transparent 60%);}
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif; color:var(--tit); letter-spacing:-.01em}
+  .wrap{max-width:880px; margin:0 auto; padding:28px 20px 60px}
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:36px}
+  header img{height:40px; width:auto}
+  .pill-tag{font-size:12px; color:var(--cyan2); border:1px solid rgba(0,203,230,.25);
+            padding:5px 12px; border-radius:999px; background:rgba(0,203,230,.05)}
+  .hero{margin-bottom:30px}
+  .hero h1{font-size:34px; line-height:1.12; margin-bottom:10px}
+  .hero h1 .g{background:linear-gradient(135deg,var(--cyan1),var(--cyan2)); -webkit-background-clip:text;
+              background-clip:text; -webkit-text-fill-color:transparent}
+  .hero p{font-size:16px; max-width:560px}
+  .card{background:rgba(38,38,38,.55); backdrop-filter:blur(14px); border:1px solid var(--line);
+        border-radius:20px; padding:22px; box-shadow:var(--glow)}
+  .steps{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px}
+  @media(max-width:640px){.steps{grid-template-columns:1fr}}
+  label{display:block; font-size:13px; color:var(--body); margin-bottom:7px; font-weight:500}
+  label .n{display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px;
+           border-radius:50%; background:linear-gradient(135deg,var(--cyan1),var(--cyan2));
+           color:#06222a; font-size:11px; font-weight:700; margin-right:7px}
+  select,input{width:100%; height:46px; background:var(--surf); color:var(--tit); font-size:15px;
+        border:1px solid var(--line); border-radius:13px; padding:0 14px; font-family:'Inter',sans-serif;
+        outline:none; transition:border-color .15s, box-shadow .15s; appearance:none}
+  select:focus,input:focus{border-color:rgba(0,203,230,.5); box-shadow:0 0 0 3px rgba(0,203,230,.12)}
+  select:disabled{opacity:.45}
+  .results{margin-top:22px; display:grid; gap:12px}
+  .ref{display:flex; align-items:center; gap:16px; background:var(--surf); border:1px solid var(--line);
+       border-radius:16px; padding:14px 16px; transition:transform .12s, border-color .15s}
+  .ref:hover{transform:translateY(-1px); border-color:rgba(0,203,230,.3)}
+  .ref .ico{width:46px; height:46px; flex:none; border-radius:12px; display:flex; align-items:center;
+            justify-content:center; font-size:22px; background:rgba(0,203,230,.08); color:var(--cyan2)}
+  .ref .info{flex:1; min-width:0}
+  .ref .info .cat{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--cyan2); font-weight:600}
+  .ref .info .nm{color:var(--tit); font-size:15px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .ref .info .st{font-size:12px; color:#6fce9b}
+  .ref .info .st.no{color:#cf7a7a}
+  .ref .price{text-align:right; flex:none}
+  .ref .price .p{font-family:'Space Grotesk'; color:var(--tit); font-size:21px; font-weight:600}
+  .ref .price .iva{font-size:11px; color:var(--body)}
+  .ref .price button{margin-top:6px; border:none; cursor:pointer; font-family:'Inter'; font-weight:600;
+      font-size:13px; color:#06222a; background:linear-gradient(135deg,var(--cyan1),var(--cyan2));
+      padding:8px 16px; border-radius:11px; transition:filter .15s}
+  .ref .price button:hover{filter:brightness(1.08)}
+  .empty,.loading{text-align:center; color:var(--body); padding:26px; font-size:14px}
+  footer{margin-top:34px; text-align:center; font-size:12px; color:#5a5959}
+  .demo-note{margin-top:18px; font-size:12px; color:#7a7878; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="https://oceantech.com.mx/wp-content/uploads/2026/04/logo_ocean_tech_250px-1.png" alt="Ocean Tech">
+    <span class="pill-tag">Refacciones · envío a todo México</span>
+  </header>
+
+  <div class="hero">
+    <h1>Encuentra la <span class="g">refacción exacta</span><br>para tu laptop</h1>
+    <p>Elige tu marca y modelo: te mostramos la batería, cargador o pantalla compatible, con precio al instante.</p>
+  </div>
+
+  <div class="card">
+    <div class="steps">
+      <div>
+        <label><span class="n">1</span>Marca de tu laptop</label>
+        <select id="marca"><option value="">Cargando marcas…</option></select>
+      </div>
+      <div>
+        <label><span class="n">2</span>Modelo</label>
+        <select id="modelo" disabled><option value="">Primero elige una marca</option></select>
+      </div>
+    </div>
+    <div id="results" class="results"></div>
+    <div id="placeholder" class="empty">Elige marca y modelo para ver tus refacciones.</div>
+  </div>
+
+  <p class="demo-note">Demo funcional · datos en vivo del feed Ocean Tech · precios con IVA incluido</p>
+  <footer>Ocean Technology Solutions® · esta es una vista preliminar para el equipo</footer>
+</div>
+
+<script>
+const FEED="https://supabase.ocean-tech.com.mx/rest/v1";
+const KEY="__ANON_KEY__";
+const H={apikey:KEY, Authorization:"Bearer "+KEY};
+const ICON={bat:"&#128267;", ac:"&#128268;", lcd:"&#128421;", fan:"&#127744;", psc:"&#9889;"};
+const CATNAME={bat:"Batería", ac:"Cargador", lcd:"Pantalla", fan:"Ventilador", psc:"Fuente"};
+const $=id=>document.getElementById(id);
+
+async function api(path){ const r=await fetch(FEED+path,{headers:H}); return r.json(); }
+
+async function loadMarcas(){
+  try{
+    const rows=await api("/calculadora_marcas?select=marca,modelos");
+    const agg={};
+    rows.forEach(r=>{ if(r.marca==="numparte")return; agg[r.marca]=(agg[r.marca]||0)+r.modelos; });
+    const marcas=Object.keys(agg).sort();
+    $("marca").innerHTML='<option value="">Selecciona…</option>'+
+      marcas.map(m=>`<option value="${m}">${m}</option>`).join("");
+  }catch(e){ $("marca").innerHTML='<option>Error al cargar</option>'; }
+}
+
+async function loadModelos(marca){
+  const sel=$("modelo");
+  sel.disabled=true; sel.innerHTML='<option>Cargando modelos…</option>';
+  const rows=await api("/calculadora_modelos?marca=eq."+encodeURIComponent(marca)+"&select=modelo_laptop&order=modelo_laptop");
+  const set=[...new Set(rows.map(r=>r.modelo_laptop))];
+  sel.innerHTML='<option value="">Selecciona tu modelo…</option>'+
+    set.map(m=>`<option value="${m}">${m.replace(/^LT-/,"").replace(marca,marca+" ")}</option>`).join("");
+  sel.disabled=false;
+}
+
+async function loadRefacciones(modelo){
+  $("placeholder").style.display="none";
+  $("results").innerHTML='<div class="loading">Buscando refacciones compatibles…</div>';
+  const rows=await api("/calculadora_compatibles?modelo_laptop=eq."+encodeURIComponent(modelo)+
+                       "&select=categoria,sku,nombre,precio,disponible&order=precio");
+  if(!rows.length){ $("results").innerHTML='<div class="empty">No encontramos refacciones para este modelo todavía.</div>'; return; }
+  const seen=new Set();
+  $("results").innerHTML=rows.filter(r=>{ if(seen.has(r.sku))return false; seen.add(r.sku); return true; })
+    .map(r=>`
+    <div class="ref">
+      <div class="ico">${ICON[r.categoria]||"&#128230;"}</div>
+      <div class="info">
+        <div class="cat">${CATNAME[r.categoria]||r.categoria}</div>
+        <div class="nm">${r.nombre||r.sku}</div>
+        <div class="st ${r.disponible?'':'no'}">${r.disponible?'● Disponible':'○ Sobre pedido'}</div>
+      </div>
+      <div class="price">
+        <div class="p">$${Number(r.precio).toLocaleString('es-MX')}</div>
+        <div class="iva">IVA incl.</div>
+        <button onclick="alert('Pedido demo: '+'${(r.nombre||r.sku).replace(/'/g,'')}'+' — $'+${r.precio})">Pedir</button>
+      </div>
+    </div>`).join("");
+}
+
+$("marca").addEventListener("change",e=>{ if(e.target.value) loadModelos(e.target.value);
+  else { $("modelo").disabled=true; $("modelo").innerHTML='<option>Primero elige una marca</option>'; } });
+$("modelo").addEventListener("change",e=>{ if(e.target.value) loadRefacciones(e.target.value); });
+loadMarcas();
+</script>
+</body>
+</html>
