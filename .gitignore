@@ -16,3 +16,4 @@ scripts/ingram_sync_progress.json
 .venv/
 .exel_session.json
 scripts/exel_sync_progress.json
+config/odoo_config_prod.json

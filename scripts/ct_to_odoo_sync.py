@@ -49,7 +49,10 @@ REPO_DIR = os.path.dirname(SCRIPTS_DIR)
 LOGS_DIR = os.path.join(REPO_DIR, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 
-CONFIG_PATH = "/Volumes/HIKSEMI 512/Antigravity/mcp-odoo/odoo_config_prod.json"
+# Config local primero (el volumen HIKSEMI da PermissionError/TCC en corridas programadas)
+CONFIG_PATH = os.path.expanduser("~/syscom-odoo-sync/config/odoo_config_prod.json")
+if not os.path.exists(CONFIG_PATH):
+    CONFIG_PATH = "/Volumes/HIKSEMI 512/Antigravity/mcp-odoo/odoo_config_prod.json"
 LOG_FILE = os.path.join(LOGS_DIR, f"ct_sync_{datetime.now().strftime('%Y%m%d_%H%M')}.log")
 PROGRESS_FILE = os.path.join(SCRIPTS_DIR, "ct_sync_progress.json")
 

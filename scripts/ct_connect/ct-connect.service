@@ -1,0 +1,17 @@
+[Unit]
+Description=ct-connect — proxy CT Internacional (catalogo FTP + API CT Connect) para hubs Ocean
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/ct-connect
+ExecStart=/usr/bin/python3 /opt/ct-connect/ct_svc.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
