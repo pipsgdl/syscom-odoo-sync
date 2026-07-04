@@ -50,12 +50,27 @@ Registradas en `ocean-cc-tools.py` de **ambos** hubs (Roger `100.122.241.82:1110
 - **`ct_tipo_cambio()`** — t.c. que CT aplica hoy.
 ⚠️ El precio es **costo distribuidor** (Ocean). Para cliente: aplicar margen (cómputo online 7% → proyecto 23%+; ver tabla en `ct_to_odoo_sync.py`).
 
-## API CT Connect — rutas verificadas (2026-07-03)
-- `POST /cliente/token` body `{"email","cliente","rfc"}` → `{token}` JWT exp 24 h.
-- `GET /existencia/{clave}` (header `x-auth`) → existencia por almacén (35A, 06A…).
-- `GET /existencia/promociones` → `[{codigo, precio, moneda, almacenes[]}]`.
-- `GET /pedido/tipoCambio` → `{"tipoCambio": 17.62}`.
-- `/precio/*`, `/producto/*`, `/productos`, `/paridad` **no existen** (4042). Rutas de pedidos/facturación: pedir doc a Carolina (pendiente).
+## API CT Connect — mapa COMPLETO (doc oficial recibida de Carolina 2026-07-03)
+Doc oficial: `https://api.ctonline.mx/documentacion.html` (OpenAPI 3.1, v1.0.11; protegida por Cloudflare — abrir en navegador). **Sandbox:** `http://sandbox.ctonline.mx` · **Producción:** `http://connect.ctonline.mx:3001`. **IP autorizada CONFIRMADA por CT:** `160.34.217.156` (Oracle 1).
+
+### Autenticación
+- `POST /cliente/token` body `{"email","cliente","rfc"}` → `{token}` JWT exp 24 h. ⚠️ email CASE-SENSITIVE (MAYÚSCULAS). Todo lo demás con header `x-auth: <token>`.
+
+### Artículos
+- `GET /existencia/promociones` → listado con precio+stock · `GET /existencia/promociones/{codigo}` → **promo y precio POR artículo**.
+- `GET /existencia/{codigo}` → stock por almacén · `GET /existencia/{codigo}/{almacen}` · `GET /existencia/detalle/{codigo}/{almacen}` · `GET /existencia/{codigo}/TOTAL`.
+
+### Orden de Compra (dropshipping) — flujo confirmado por Carolina
+1. **`POST /pedido`** (Solicitar) — body: `idPedido` (referencia nuestra, int), `almacen` (ej "01A"), `tipoPago` (**"99" = Crédito CT**), `cfdi` ("G01" default), `envio: [{nombre, direccion, entreCalles, noExterior, noInterior, colonia, estado, ciudad, codigoPostal, telefono}]` (= dirección del CLIENTE FINAL → dropship directo), `producto: [{cantidad, clave, precio, moneda MXN|USD}]`. → Respuesta `respuestaCT: {pedidoWeb: "W01-000001", tipoDeCambio, estatus: "Pendiente", errores[]}`. ⚠️ **Vigencia 48 h: si no se confirma, se cancela solo.**
+2. **`POST /pedido/confirmar`** `{folio}` → okCode 2000. **Esto dispara la facturación de CT.**
+3. **`POST /pedido/guias`** `{folio, guias: [{guia, paqueteria, archivo (PDF base64)}]}` — opcional, si nosotros ponemos la guía; almacén CT empaca y entrega.
+4. Seguimiento: `GET /pedido/listar` · `GET /pedido/estatus/{folio}` ("Pendiente"/"Confirmado"…) · `GET /pedido/detalle/{folio}`.
+
+### Utilidades
+- `GET /pedido/tipoCambio` → `{"tipoCambio": 17.62}` · `GET /paqueteria/volumetria/{codigo}` (peso/dimensiones para cotizar envío) · `GET /series/factura/{factura}` (números de serie por factura).
+
+### Diseño del bot de dropship (siguiente incremento)
+Solicitar (`idPedido` = id de la SO de Odoo → idempotencia) → validar total vs cotizado → **gate de confirmación humana** → confirmar → poll estatus → registrar folio/factura en Odoo. Probar TODO en sandbox (`sandbox.ctonline.mx`) antes de producción. tipoPago 99 = va contra la línea de crédito CT: el gate humano es obligatorio.
 
 ## Salud / troubleshooting
 1. `curl http://100.105.9.127:11130/salud` (desde tailnet) — `ok:true` y `catalogo_edad_min < 120`.
