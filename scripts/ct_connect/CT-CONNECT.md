@@ -77,3 +77,12 @@ Solicitar (`idPedido` = id de la SO de Odoo → idempotencia) → validar total 
 2. Si `catalogo_edad_min` alto → revisar cron `ct-cache-builder.sh` en Oracle 1 (`/opt/ct-cache/ct-cache.log`).
 3. Si `token_ct_ok:false` → probar token a mano (email EN MAYÚSCULAS) y confirmar IP con Carolina.
 4. Sync Odoo: log diario `~/syscom-odoo-sync/logs/ct_diff_YYYYMMDD_0600.log` en Mac mini.
+
+## Bot de pedidos `ct_dropship.py` (v2, 2026-07-03) — construido y probado en sandbox
+`/opt/ct-connect/ct_dropship.py` (Oracle 1, stdlib puro). **Sandbox por default**; producción doblemente gateada. Endurecido con revisión adversarial multi-lente (16 agentes, 11 hallazgos corregidos):
+- **Gates atados al HOST real** (no al flag): sanity-check de `CT_SANDBOX_BASE`/`CT_BASE` al arrancar + ambiente efectivo por hostname. Producción exige `--produccion --confirmo-compra`; confirmar exige además `--frase CONFIRMO-FACTURACION`; `--forzar` en prod exige `--frase-forzar FORZAR-PRODUCCION`.
+- **Write-ahead audit**: `solicitar_intento`/`confirmar_intento` ANTES del POST + resultado después (fsync). TODO fallo (HTTP/red/token/parseo) queda en bitácora `pedidos_<ambiente>.jsonl` + alerta Telegram. Red caída a mitad de pedido → estado INDETERMINADO explícito que exige verificar con `listar`/`estatus` antes de reintentar.
+- **Idempotencia por folio** (un pedido con `errores[]` también existe en CT) + cross-check de folio contra bitácora en confirmar + lock `flock` anti-carrera + bitácora tolerante a líneas corruptas.
+- **Anti-typo**: coerción int de codigoPostal/telefono, tope `CT_MAX_TOTAL_PEDIDO` (default $50k, `--sobre-limite`), total impreso antes de disparar.
+- **E2E sandbox verificado**: token ✓, gate producción bloquea ✓, validación de inventario real del API ✓ (4008 sin stock en 01A → correcto), auditoría de fallos ✓.
+- **⛔ BLOQUEADO por cuenta, no por código:** `POST /pedido` responde `4000 "Sin linea de credito. Contacte a su asesor de venta"` — la cuenta GDL2508 no tiene línea de crédito para pedidos API (tipoPago 99). **Acción: pedir a Carolina Wong** habilitar línea/modalidad de pago para pedidos API (sandbox y producción) + catálogo de valores válidos de `tipoPago`.

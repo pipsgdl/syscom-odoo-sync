@@ -1,0 +1,21 @@
+{
+  "idPedido": 990001,
+  "almacen": "01A",
+  "tipoPago": "99",
+  "cfdi": "G01",
+  "envio": {
+    "nombre": "Prueba Sandbox Ocean Tech",
+    "direccion": "Av. Prueba Sandbox",
+    "entreCalles": " ",
+    "noExterior": "100",
+    "noInterior": "",
+    "colonia": "Centro",
+    "estado": "Jalisco",
+    "ciudad": "Guadalajara",
+    "codigoPostal": 44100,
+    "telefono": 3311111111
+  },
+  "productos": [
+    { "clave": "ACCACT3300", "cantidad": 1, "precio": 39.42, "moneda": "MXN" }
+  ]
+}
