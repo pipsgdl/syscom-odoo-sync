@@ -2,14 +2,25 @@
 """
 Techsmart → Odoo Production Sync (8º distribuidor)
 ==================================================
-Extracción CORRECTA (verificada 2026-06-11):
+Extracción CORRECTA (verificada 2026-06-11; BUGFIX moneda 2026-07-06):
   - Login:   POST {BASE}/acciones/login.php  (rfc, usuario, txtPass)  -> cookie PHPSESSID
   - Catálogo cliente con precios (server-side, SÍNCRONO):
         GET {BASE}/Clientes/Catalogo?txtCategoria=<CAT>&txtMarca=<MARCA>
         El catálogo EXIGE categoría + marca (ambas). Cada tarjeta trae:
           cveProducto=<CODIGO> & Marca=<MARCA>, MODELO, descripción,
-          precio lista (tachado) y precio c/descuento ($ MXN).
-  - Costo Ocean = precio c/descuento (precio_desc). Productos en $0 = sin precio asignado -> se omiten.
+          precio lista (tachado) y precio c/descuento — EN USD O EN MXN según la categoría/marca
+          (ej. PROCESADORES/MOTHERBOARDS/TARJETAS DE VIDEO/ALMACENAMIENTO suelen venir en USD;
+          ENFRIAMIENTO/MONITORES/TECLADOS suelen venir en MXN. NO asumir una sola moneda).
+  - Costo Ocean = precio c/descuento (precio_desc), SIEMPRE normalizado a MXN.
+    USD -> MXN con el tipo de cambio que el propio sitio muestra en el navbar de cada página
+    ("Tipo de cambio: $X.XX", id="tipo_cambioo") — NUNCA hardcodear un t.c. fijo.
+  - Productos en $0 = sin precio asignado -> se omiten.
+
+  ⚠️ BUG HISTÓRICO CORREGIDO (2026-07-06): el parser original solo aceptaba precios con
+  sufijo "MXN" (regex `\$([\d,]+\.\d{2})\s*MXN`). Categorías completas en USD (procesadores,
+  tarjetas madre, tarjetas de video, RAM, almacenamiento) se leían como $0.00 y se descartaban
+  como "sin precio asignado" — siendo que SÍ tenían precio real. Esto pudo estar sub-reportando
+  precios de Techsmart en Odoo desde 2026-06-11. Ver ~/.claude/memory/project_techsmart_proveedor_2026-06-11.md.
 
 Uso:
   python3 techsmart_to_odoo_sync.py --dry-run    # crawl + valida, NO escribe Odoo
@@ -56,15 +67,21 @@ def _opciones_select(html, select_id):
     return [v for v,_ in re.findall(r'<option[^>]*value="([^"]+)"[^>]*>([^<]*)</option>', m.group(0))
             if v not in ('-1','','T')]
 
+def tipo_cambio(h):
+    """Tipo de cambio USD->MXN mostrado por el propio sitio (navbar, todas las páginas)."""
+    m=re.search(r'Tipo de cambio:\s*\$([\d.]+)', h)
+    return float(m.group(1)) if m else None
+
 def catalogos(s, base):
     hc=s.get(base+'/Clientes/Catalogo',timeout=40).text
     hl=s.get(base+'/Clientes/Lista-precios',timeout=40).text  # las marcas viven aquí (select completo)
     cats=_opciones_select(hc,'txtCategoria') or _opciones_select(hl,'txtCategoria')
     marcas=_opciones_select(hl,'txtMarca')
-    log(f"Categorías: {len(cats)} · Marcas: {len(marcas)}")
-    return cats, marcas
+    tc=tipo_cambio(hc) or tipo_cambio(hl)
+    log(f"Categorías: {len(cats)} · Marcas: {len(marcas)} · Tipo de cambio inicial: {tc}")
+    return cats, marcas, tc
 
-def parse_pagina(h):
+def parse_pagina(h, tc):
     out=[]
     anc=list(re.finditer(r'cveProducto=([A-Z0-9._-]+)&TipoMoneda=\w+&Marca=([^"&]+)', h))
     for i,m in enumerate(anc):
@@ -73,13 +90,18 @@ def parse_pagina(h):
         mod=(re.search(r'MODELO:\s*([A-Z0-9._/-]+)',seg) or [None,''])[1]
         d=re.search(r'text-card">\s*(.*?)\s*<br',seg,re.S)
         desc=re.sub(r'\s+',' ',d.group(1)).strip() if d else ''
-        pr=[float(x.replace(',','')) for x in re.findall(r'\$([\d,]+\.\d{2})\s*MXN',seg)]
-        pl=pr[0] if pr else 0.0; pd=pr[1] if len(pr)>1 else pl
+        # BUGFIX 2026-07-06: acepta USD o MXN (antes solo MXN -> $0 falso en cat. de mayor valor)
+        pr=re.findall(r'\$([\d,]+\.\d{2})\s*(USD|MXN)', seg)
+        vals=[(float(x.replace(',','')), cur) for x,cur in pr]
+        pl,pl_cur=vals[0] if vals else (0.0,'MXN')
+        pd,pd_cur=vals[1] if len(vals)>1 else (pl,pl_cur)
+        if pd_cur=='USD': pd=round(pd*tc,2)
+        if pl_cur=='USD': pl=round(pl*tc,2)
         out.append({'codigo':cod,'marca':marca,'modelo':mod,'desc':desc[:80],
                     'precio_lista':pl,'precio_desc':pd})
     return out
 
-def crawl(s, base, cats, marcas):
+def crawl(s, base, cats, marcas, tc=None):
     vistos={}
     total=len(cats)*len(marcas); hecho=0
     for c in cats:
@@ -89,7 +111,11 @@ def crawl(s, base, cats, marcas):
                 try:
                     h=s.get(base+'/Clientes/Catalogo',
                             params={'txtCategoria':c,'txtMarca':mk},timeout=40).text
-                    for p in parse_pagina(h):
+                    tc_pagina=tipo_cambio(h)
+                    if tc_pagina: tc=tc_pagina
+                    if tc is None:
+                        raise RuntimeError("no se pudo leer 'Tipo de cambio' del sitio")
+                    for p in parse_pagina(h, tc):
                         p['categoria']=c
                         vistos[p['codigo']]=p   # dedup por código
                     break
@@ -97,7 +123,8 @@ def crawl(s, base, cats, marcas):
                     if intento==2: log(f"  err {c}/{mk}: {str(e)[:60]}")
                     time.sleep(2)
             if hecho % 200 == 0:
-                log(f"  {hecho}/{total} combos · {len(vistos)} productos únicos")
+                log(f"  {hecho}/{total} combos · {len(vistos)} productos únicos · t.c.={tc}")
+    log(f"Tipo de cambio USD->MXN usado: {tc}")
     return list(vistos.values())
 
 # ---------- Odoo ----------
@@ -126,11 +153,15 @@ def main(dry_run=True):
     for k in ('ODOO_DB','ODOO_UID','ODOO_PASS'): env.setdefault(k, os.environ.get(k,''))
     base=env['TECHSMART_BASE']
     s=login(env)
-    cats,marcas=catalogos(s,base)
+    cats,marcas,tc=catalogos(s,base)
     if not cats or not marcas:
         log("❌ ABORTA: no se pudieron leer categorías/marcas."); return 2
-    log(f"Crawl de {len(cats)}x{len(marcas)} combos…")
-    productos=crawl(s,base,cats,marcas)
+    if not tc:
+        log("❌ ABORTA: no se pudo leer el 'Tipo de cambio' del sitio — sin esto, los precios "
+            "en USD (procesadores/motherboards/GPU/RAM/almacenamiento) no se pueden normalizar "
+            "a MXN de forma confiable."); return 2
+    log(f"Crawl de {len(cats)}x{len(marcas)} combos… (t.c. USD->MXN: {tc})")
+    productos=crawl(s,base,cats,marcas,tc)
     con_precio=[p for p in productos if p['precio_desc']>0]
     log(f"Productos únicos: {len(productos)} · con precio>0: {len(con_precio)}")
 
