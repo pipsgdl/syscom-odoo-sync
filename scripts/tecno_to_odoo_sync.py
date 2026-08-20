@@ -8,7 +8,11 @@ Uso:
   python3 tecno_to_odoo_sync.py --diff    # incremental
   python3 tecno_to_odoo_sync.py --full    # refresh completo
 """
-import json, subprocess, time, sys, os
+import json
+import os
+import subprocess
+import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -17,7 +21,23 @@ SCRIPTS_DIR = Path(__file__).parent
 PROGRESS_FILE = SCRIPTS_DIR / 'tecno_sync_progress.json'
 CACHE_FILE = '/tmp/tecno_full.json'
 
-TECNO_TOKEN = "$2y$10$o.q7onp5Edv8jN6B8CPum.8z3lLjGLGcwFryEX4t.z.bZAaX46h5m"
+# Token: ~/.tecno.env (0600). Sin secretos embebidos (regla CLAUDE.md #3).
+# Este archivo vive en un repo PUBLICO — nunca volver a poner el token aqui.
+def _cargar_token():
+    ruta = Path.home() / ".tecno.env"
+    valor = os.environ.get("TECNO_TOKEN", "").strip()
+    if not valor and ruta.exists():
+        for linea in ruta.read_text(encoding="utf-8").splitlines():
+            linea = linea.strip()
+            if linea.startswith("TECNO_TOKEN="):
+                valor = linea.split("=", 1)[1].strip().strip('"').strip("'")
+    if not valor:
+        raise RuntimeError(
+            "falta TECNO_TOKEN: definelo en el entorno o en ~/.tecno.env (0600)")
+    return valor
+
+
+TECNO_TOKEN = _cargar_token()
 TECNO_PARTNER_ID = 92
 
 
