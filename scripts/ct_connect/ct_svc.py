@@ -213,7 +213,7 @@ class H(BaseHTTPRequestHandler):
             if len(parts) == 2 and parts[0] == "precio":
                 return self._send(200, h_precio(parts[1]))
             if parts == ["buscar"]:
-                lim = min(int((qs.get("limit") or ["8"])[0]), 20)
+                lim = min(int((qs.get("limit") or ["8"])[0]), 100)
                 return self._send(200, h_buscar((qs.get("q") or [""])[0], lim))
             if parts == ["promociones"]:
                 lim = min(int((qs.get("limit") or ["25"])[0]), 100)
