@@ -14,16 +14,21 @@ Endpoints (auth: header X-Token o ?token=, excepto /salud):
   GET /buscar?q=texto       → busca en el catálogo (clave/parte/modelo/nombre/marca), top 8
   GET /promociones          → promociones vigentes del API (cache 10 min)
   GET /tipocambio           → tipo de cambio CT (cache 1 h)
+  GET /vivo/<codigo>        → precio + moneda + existencia por almacén + promoción EN VIVO,
+                              clave por clave, con la hora de CADA llamada. El catálogo
+                              solo sirve para encontrar la(s) clave(s). (ocean-work T8b.5)
 
 Red de seguridad: stdlib puro (sin pips), token de servicio, cache de token CT con
 renovación (24h exp / reintento en 401), recarga del catálogo por mtime, timeouts,
 threading server, systemd Restart=always.
 """
 import json, os, re, ssl, time, threading, urllib.request, urllib.error
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, parse_qs, unquote
+from urllib.parse import urlparse, parse_qs, unquote, quote
 
-ENVF = "/opt/ct-connect/.env"
+# Desviable solo para las pruebas (test_vivo.py); en producción no se define.
+ENVF = os.environ.get("CT_CONNECT_ENV", "/opt/ct-connect/.env")
 ENV = {}
 for _l in open(ENVF, encoding="utf-8"):
     _l = _l.strip()
@@ -180,6 +185,78 @@ def h_promociones(limit=25):
     ps = list(promos().values())[:limit]
     return {"total": len(promos()), "promociones": ps}
 
+# Un número de parte con más claves que esto no se consulta entero: se avisa
+# `truncado` y lo resuelve una persona. El máximo medido el 23-sep fue 2.
+VIVO_MAX_CLAVES = 5
+
+def _norm(s):
+    return re.sub(r"[^A-Z0-9]", "", str(s or "").upper())
+
+def h_vivo(codigo):
+    """Precio y existencia EN VIVO de CT, clave por clave (ocean-work spec 001, T8b.5).
+
+    Felipe, 23-sep: un precio o una existencia solo se confirman con respuesta en vivo
+    de la API y la hora de ESA llamada. `/precio` no sirve para eso: su precio sale del
+    catálogo FTP. Aquí el catálogo solo encuentra la(s) clave(s) —la API en vivo no
+    busca por número de parte— y todo lo demás sale de
+    `GET /existencia/promociones/{clave}` en el momento.
+
+    No decide nada: reporta lo que CT contestó y, si falló, cómo falló. Una falla NUNCA
+    se convierte en «no existe», y un `precio: 0` (así contesta CT una clave que no le
+    conoce precio) se reporta tal cual: quien consume decide que no es un precio.
+    """
+    load_catalog()
+    buscado = _norm(codigo)
+    candidatos, vistos = [], set()
+    for it in _cat["items"]:
+        if buscado and (_norm(it.get("numParte")) == buscado or _norm(it.get("clave")) == buscado):
+            clave = it.get("clave")
+            if clave and clave not in vistos:
+                vistos.add(clave)
+                candidatos.append(it)
+    salida = {
+        "codigo": codigo,
+        "catalogo_edad_min": int((time.time() - _cat["mtime"]) / 60) if _cat["mtime"] else None,
+        "catalogo_items": len(_cat["items"]),
+        # Del catálogo, solo la identidad del producto: ni precio ni existencia.
+        "candidatos": [{k: it.get(k) for k in ("clave", "numParte", "modelo", "marca", "nombre")}
+                       for it in candidatos],
+        "truncado": len(candidatos) > VIVO_MAX_CLAVES,
+        "en_vivo": [],
+        "fuente": "CT Connect API en vivo: GET /existencia/promociones/{clave}",
+    }
+    for it in candidatos[:VIVO_MAX_CLAVES]:
+        clave = it.get("clave")
+        entrada = {"clave": clave,
+                   "consultado_en": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        t0 = time.time()
+        try:
+            d = ct_api(f"/existencia/promociones/{quote(str(clave), safe='')}")
+            if not isinstance(d, dict):
+                raise ValueError(f"CT contestó {type(d).__name__}, no la ficha de un artículo")
+            existencia, promos_alm = {}, {}
+            for alm in d.get("almacenes") or []:
+                if not isinstance(alm, dict):
+                    continue
+                codigos = [k for k, v in alm.items() if k != "promocion"
+                           and isinstance(v, (int, float)) and not isinstance(v, bool)]
+                for k in codigos:
+                    existencia[k] = int(alm[k])
+                promo = alm.get("promocion")
+                if isinstance(promo, dict):
+                    vig = promo.get("vigente") or {}
+                    for k in codigos:
+                        promos_alm[k] = {"precio": promo.get("precio"),
+                                         "inicio": vig.get("ini"), "fin": vig.get("fin")}
+            entrada.update(ok=True, precio=d.get("precio"), moneda=d.get("moneda"),
+                           existencia_por_almacen=existencia, promocion_por_almacen=promos_alm)
+        except Exception as e:
+            entrada.update(ok=False, precio=None, moneda=None,
+                           error=f"{type(e).__name__}: {str(e)[:160]}")
+        entrada["segundos"] = round(time.time() - t0, 3)
+        salida["en_vivo"].append(entrada)
+    return salida
+
 def h_salud():
     load_catalog()
     edad = int((time.time() - _cat["mtime"]) / 60) if _cat["mtime"] else None
@@ -212,8 +289,12 @@ class H(BaseHTTPRequestHandler):
                 return self._send(401, {"error": "token de servicio inválido"})
             if len(parts) == 2 and parts[0] == "precio":
                 return self._send(200, h_precio(parts[1]))
+            if len(parts) >= 2 and parts[0] == "vivo":
+                # Un número de parte puede traer «/» (BN8029AVAIRAI/NDAA): llega
+                # codificada como %2F, o partida en tramos; en ambos casos se une.
+                return self._send(200, h_vivo("/".join(parts[1:])))
             if parts == ["buscar"]:
-                lim = min(int((qs.get("limit") or ["8"])[0]), 20)
+                lim = min(int((qs.get("limit") or ["8"])[0]), 100)
                 return self._send(200, h_buscar((qs.get("q") or [""])[0], lim))
             if parts == ["promociones"]:
                 lim = min(int((qs.get("limit") or ["25"])[0]), 100)
@@ -221,7 +302,8 @@ class H(BaseHTTPRequestHandler):
             if parts == ["tipocambio"]:
                 return self._send(200, {"tipoCambio": tipo_cambio(), "fuente": "CT Connect /pedido/tipoCambio"})
             return self._send(404, {"error": "ruta no encontrada",
-                                    "rutas": ["/salud", "/precio/<codigo>", "/buscar?q=", "/promociones", "/tipocambio"]})
+                                    "rutas": ["/salud", "/precio/<codigo>", "/vivo/<codigo>", "/buscar?q=",
+                                              "/promociones", "/tipocambio"]})
         except Exception as e:
             log(f"ERROR {self.path}: {e}")
             return self._send(500, {"error": str(e)[:200]})
