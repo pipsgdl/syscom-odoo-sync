@@ -1,0 +1,29 @@
+[08:33:37] 
+############################################################
+[08:33:37] # SYSCOM → ODOO PRODUCTION SYNC
+[08:33:37] # Started: 2026-06-22 08:33:37
+[08:33:37] # Target: https://ocean-tech.odoo.com
+[08:33:37] # Mode: LIVE
+[08:33:37] # Images: SKIP
+[08:33:37] ############################################################
+[08:33:38] Connected to https://ocean-tech.odoo.com as UID=2
+[08:33:39] Preloading existing SKUs...
+[08:33:41]   Loaded 84292 existing SKUs
+[08:33:41] Configurando listas de precios...
+[08:33:41]   Lista 'Online (Ecommerce)' ya existe: ID 3
+[08:33:41]   Lista 'Menudeo (Mostrador)' ya existe: ID 4
+[08:33:41]   Lista 'Proyecto (Cotización)' ya existe: ID 5
+[08:33:41]   Online: ID 3
+[08:33:41]   Menudeo: ID 4
+[08:33:41]   Proyecto: ID 5
+[08:33:41] Syscom token obtained ✅
+[08:33:41] Resuming from category index 12
+[08:33:41] 
+============================================================
+[08:33:41] SYNC COMPLETE
+[08:33:41]   Created: 0
+[08:33:41]   Updated: 0
+[08:33:41]   Errors:  0
+[08:33:41]   Total:   0
+[08:33:41]   Log:     /Users/ingfelipe/syscom-odoo-sync/scripts/sync_log_20260622_0833.txt
+[08:33:41] ============================================================

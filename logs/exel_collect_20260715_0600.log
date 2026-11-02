@@ -1,0 +1,326 @@
+[07:05:04] Login con user=GDL1657XL06691
+[07:05:13] Cat 1: Computo — navegando...
+[07:06:13]   ❌ ERROR cat 1: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=1", waiting until "networkidle"
+
+[07:06:13] Cat 2: Impresion y Multifuncionales — navegando...
+[07:06:38]   Pág 1: +78 (total 78)
+[07:07:00]   Pág 2: +0 (total 78)
+[07:07:22]   Pág 3: +0 (total 78)
+[07:07:22]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[07:07:22]   ✓ Cat 2 (Impresion y Multifuncionales): 78 SKUs únicos
+[07:07:22] Cat 3: Consumibles — navegando...
+[07:07:31]   Pág 1: +78 (total 78)
+[07:07:53]   Pág 2: +20 (total 98)
+[07:08:15]   Pág 3: +20 (total 118)
+[07:08:38]   Pág 4: +20 (total 138)
+[07:09:00]   Pág 5: +20 (total 158)
+[07:09:22]   Pág 6: +19 (total 177)
+[07:09:44]   Pág 7: +20 (total 197)
+[07:10:06]   Pág 8: +20 (total 217)
+[07:10:29]   Pág 9: +19 (total 236)
+[07:10:51]   Pág 10: +20 (total 256)
+[07:11:13]   Pág 11: +20 (total 276)
+[07:11:35]   Pág 12: +20 (total 296)
+[07:11:58]   Pág 13: +20 (total 316)
+[07:12:20]   Pág 14: +20 (total 336)
+[07:12:42]   Pág 15: +20 (total 356)
+[07:13:04]   Pág 16: +20 (total 376)
+[07:13:26]   Pág 17: +20 (total 396)
+[07:13:49]   Pág 18: +20 (total 416)
+[07:14:11]   Pág 19: +20 (total 436)
+[07:14:33]   Pág 20: +20 (total 456)
+[07:14:55]   Pág 21: +20 (total 476)
+[07:15:17]   Pág 22: +20 (total 496)
+[07:15:39]   Pág 23: +20 (total 516)
+[07:16:02]   Pág 24: +20 (total 536)
+[07:16:24]   Pág 25: +20 (total 556)
+[07:16:46]   Pág 26: +20 (total 576)
+[07:17:08]   Pág 27: +20 (total 596)
+[07:17:30]   Pág 28: +20 (total 616)
+[07:17:53]   Pág 29: +20 (total 636)
+[07:18:15]   Pág 30: +20 (total 656)
+[07:18:37]   Pág 31: +20 (total 676)
+[07:18:59]   Pág 32: +20 (total 696)
+[07:19:22]   Pág 33: +20 (total 716)
+[07:19:44]   Pág 34: +20 (total 736)
+[07:20:07]   Pág 35: +20 (total 756)
+[07:20:29]   Pág 36: +20 (total 776)
+[07:20:51]   Pág 37: +20 (total 796)
+[07:21:14]   Pág 38: +20 (total 816)
+[07:21:36]   Pág 39: +20 (total 836)
+[07:21:58]   Pág 40: +20 (total 856)
+[07:22:20]   Pág 41: +20 (total 876)
+[07:22:43]   Pág 42: +20 (total 896)
+[07:23:05]   Pág 43: +20 (total 916)
+[07:23:27]   Pág 44: +20 (total 936)
+[07:23:49]   Pág 45: +20 (total 956)
+[07:24:12]   Pág 46: +20 (total 976)
+[07:24:34]   Pág 47: +20 (total 996)
+[07:24:56]   Pág 48: +20 (total 1016)
+[07:25:19]   Pág 49: +20 (total 1036)
+[07:25:41]   Pág 50: +20 (total 1056)
+[07:26:03]   Pág 51: +20 (total 1076)
+[07:26:26]   Pág 52: +20 (total 1096)
+[07:26:48]   Pág 53: +20 (total 1116)
+[07:27:10]   Pág 54: +20 (total 1136)
+[07:27:33]   Pág 55: +20 (total 1156)
+[07:27:55]   Pág 56: +20 (total 1176)
+[07:28:17]   Pág 57: +20 (total 1196)
+[07:28:40]   Pág 58: +20 (total 1216)
+[07:29:02]   Pág 59: +20 (total 1236)
+[07:29:24]   Pág 60: +20 (total 1256)
+[07:29:46]   Pág 61: +20 (total 1276)
+[07:30:09]   Pág 62: +20 (total 1296)
+[07:30:31]   Pág 63: +20 (total 1316)
+[07:30:53]   Pág 64: +20 (total 1336)
+[07:31:16]   Pág 65: +20 (total 1356)
+[07:31:38]   Pág 66: +20 (total 1376)
+[07:32:00]   Pág 67: +20 (total 1396)
+[07:32:22]   Pág 68: +20 (total 1416)
+[07:32:45]   Pág 69: +20 (total 1436)
+[07:33:07]   Pág 70: +20 (total 1456)
+[07:33:29]   Pág 71: +20 (total 1476)
+[07:33:52]   Pág 72: +20 (total 1496)
+[07:34:14]   Pág 73: +20 (total 1516)
+[07:34:36]   Pág 74: +20 (total 1536)
+[07:34:59]   Pág 75: +20 (total 1556)
+[07:35:22]   Pág 76: +20 (total 1576)
+[07:35:44]   Pág 77: +20 (total 1596)
+[07:36:06]   Pág 78: +20 (total 1616)
+[07:36:29]   Pág 79: +20 (total 1636)
+[07:36:51]   Pág 80: +20 (total 1656)
+[07:37:14]   Pág 81: +20 (total 1676)
+[07:37:36]   Pág 82: +20 (total 1696)
+[07:37:58]   Pág 83: +20 (total 1716)
+[07:38:21]   Pág 84: +20 (total 1736)
+[07:38:43]   Pág 85: +20 (total 1756)
+[07:39:05]   Pág 86: +20 (total 1776)
+[07:39:28]   Pág 87: +20 (total 1796)
+[07:39:50]   Pág 88: +20 (total 1816)
+[07:40:12]   Pág 89: +20 (total 1836)
+[07:40:34]   Pág 90: +20 (total 1856)
+[07:40:57]   Pág 91: +20 (total 1876)
+[07:41:19]   Pág 92: +20 (total 1896)
+[07:41:42]   Pág 93: +20 (total 1916)
+[07:42:04]   Pág 94: +20 (total 1936)
+[07:42:27]   Pág 95: +20 (total 1956)
+[07:42:49]   Pág 96: +20 (total 1976)
+[07:43:11]   Pág 97: +20 (total 1996)
+[07:43:34]   Pág 98: +20 (total 2016)
+[07:43:56]   Pág 99: +20 (total 2036)
+[07:44:19]   Pág 100: +20 (total 2056)
+[07:44:41]   ✓ Cat 3 (Consumibles): 2056 SKUs únicos
+[07:44:41] Cat 4: Almacenamiento — navegando...
+[07:44:46]   Pág 1: +77 (total 77)
+[07:45:09]   Pág 2: +20 (total 97)
+[07:45:31]   Pág 3: +20 (total 117)
+[07:45:53]   Pág 4: +20 (total 137)
+[07:46:15]   Pág 5: +20 (total 157)
+[07:46:37]   Pág 6: +20 (total 177)
+[07:46:59]   Pág 7: +19 (total 196)
+[07:47:22]   Pág 8: +20 (total 216)
+[07:47:44]   Pág 9: +20 (total 236)
+[07:48:06]   Pág 10: +20 (total 256)
+[07:48:28]   Pág 11: +20 (total 276)
+[07:48:50]   Pág 12: +20 (total 296)
+[07:49:13]   Pág 13: +20 (total 316)
+[07:49:35]   Pág 14: +20 (total 336)
+[07:49:57]   Pág 15: +20 (total 356)
+[07:50:19]   Pág 16: +20 (total 376)
+[07:50:41]   Pág 17: +20 (total 396)
+[07:51:03]   Pág 18: +20 (total 416)
+[07:51:25]   Pág 19: +20 (total 436)
+[07:51:48]   Pág 20: +20 (total 456)
+[07:52:10]   Pág 21: +20 (total 476)
+[07:52:32]   Pág 22: +20 (total 496)
+[07:52:55]   Pág 23: +20 (total 516)
+[07:53:17]   Pág 24: +20 (total 536)
+[07:53:39]   Pág 25: +20 (total 556)
+[07:54:01]   Pág 26: +20 (total 576)
+[07:54:24]   Pág 27: +20 (total 596)
+[07:54:46]   Pág 28: +20 (total 616)
+[07:55:08]   Pág 29: +20 (total 636)
+[07:55:30]   Pág 30: +20 (total 656)
+[07:55:52]   Pág 31: +20 (total 676)
+[07:56:15]   Pág 32: +20 (total 696)
+[07:56:37]   Pág 33: +20 (total 716)
+[07:56:59]   Pág 34: +20 (total 736)
+[07:57:22]   Pág 35: +20 (total 756)
+[07:57:44]   Pág 36: +20 (total 776)
+[07:58:06]   Pág 37: +20 (total 796)
+[07:58:28]   Pág 38: +20 (total 816)
+[07:58:51]   Pág 39: +20 (total 836)
+[07:59:13]   Pág 40: +20 (total 856)
+[07:59:18]   Pág 41: +0 (total 856)
+[07:59:18]   → No hay botón siguiente, fin
+[07:59:18]   ✓ Cat 4 (Almacenamiento): 856 SKUs únicos
+[07:59:18] Cat 5: Electronica de Consumo — navegando...
+[07:59:24]   Pág 1: +78 (total 78)
+[07:59:28]   Pág 2: +4 (total 82)
+[07:59:50]   Pág 3: +0 (total 82)
+[08:00:12]   Pág 4: +0 (total 82)
+[08:00:12]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[08:00:12]   ✓ Cat 5 (Electronica de Consumo): 82 SKUs únicos
+[08:00:12] Cat 6: Camara Video y Proyeccion — navegando...
+[08:00:17]   Pág 1: +78 (total 78)
+[08:00:39]   Pág 2: +19 (total 97)
+[08:01:01]   Pág 3: +19 (total 116)
+[08:01:23]   Pág 4: +20 (total 136)
+[08:01:46]   Pág 5: +20 (total 156)
+[08:02:08]   Pág 6: +20 (total 176)
+[08:02:30]   Pág 7: +20 (total 196)
+[08:02:52]   Pág 8: +20 (total 216)
+[08:03:14]   Pág 9: +20 (total 236)
+[08:03:37]   Pág 10: +20 (total 256)
+[08:03:59]   Pág 11: +20 (total 276)
+[08:04:21]   Pág 12: +16 (total 292)
+[08:04:21]   → No hay botón siguiente, fin
+[08:04:21]   ✓ Cat 6 (Camara Video y Proyeccion): 292 SKUs únicos
+[08:04:21] Cat 7: Audio y Entretenimiento — navegando...
+[08:04:25]   Pág 1: +59 (total 59)
+[08:04:25]   → No hay botón siguiente, fin
+[08:04:25]   ✓ Cat 7 (Audio y Entretenimiento): 59 SKUs únicos
+[08:04:25] Cat 8: Redes — navegando...
+[08:04:30]   Pág 1: +77 (total 77)
+[08:04:35]   Pág 2: +4 (total 81)
+[08:04:57]   Pág 3: +0 (total 81)
+[08:05:19]   Pág 4: +0 (total 81)
+[08:05:19]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[08:05:19]   ✓ Cat 8 (Redes): 81 SKUs únicos
+[08:05:19] Cat 9: Software y Garantias — navegando...
+[08:05:24]   Pág 1: +79 (total 79)
+[08:05:46]   Pág 2: +20 (total 99)
+[08:06:09]   Pág 3: +20 (total 119)
+[08:06:31]   Pág 4: +20 (total 139)
+[08:06:53]   Pág 5: +20 (total 159)
+[08:07:15]   Pág 6: +19 (total 178)
+[08:07:37]   Pág 7: +20 (total 198)
+[08:08:00]   Pág 8: +20 (total 218)
+[08:08:22]   Pág 9: +20 (total 238)
+[08:08:44]   Pág 10: +19 (total 257)
+[08:09:06]   Pág 11: +20 (total 277)
+[08:09:29]   Pág 12: +20 (total 297)
+[08:09:51]   Pág 13: +20 (total 317)
+[08:10:13]   Pág 14: +20 (total 337)
+[08:10:35]   Pág 15: +20 (total 357)
+[08:10:57]   Pág 16: +20 (total 377)
+[08:11:20]   Pág 17: +20 (total 397)
+[08:11:42]   Pág 18: +20 (total 417)
+[08:12:04]   Pág 19: +20 (total 437)
+[08:12:27]   Pág 20: +20 (total 457)
+[08:12:49]   Pág 21: +20 (total 477)
+[08:13:11]   Pág 22: +20 (total 497)
+[08:13:33]   Pág 23: +20 (total 517)
+[08:13:56]   Pág 24: +20 (total 537)
+[08:14:18]   Pág 25: +20 (total 557)
+[08:14:40]   Pág 26: +20 (total 577)
+[08:15:02]   Pág 27: +20 (total 597)
+[08:15:25]   Pág 28: +20 (total 617)
+[08:15:47]   Pág 29: +20 (total 637)
+[08:16:09]   Pág 30: +20 (total 657)
+[08:16:31]   Pág 31: +10 (total 667)
+[08:16:31]   → No hay botón siguiente, fin
+[08:16:31]   ✓ Cat 9 (Software y Garantias): 667 SKUs únicos
+[08:16:31] Cat 10: Energia y Cables — navegando...
+[08:16:38]   Pág 1: +79 (total 79)
+[08:16:43]   Pág 2: +3 (total 82)
+[08:16:43]   → No hay botón siguiente, fin
+[08:16:43]   ✓ Cat 10 (Energia y Cables): 82 SKUs únicos
+[08:16:43] Cat 11: Telefonia — navegando...
+[08:16:49]   Pág 1: +79 (total 79)
+[08:17:11]   Pág 2: +0 (total 79)
+[08:17:33]   Pág 3: +0 (total 79)
+[08:17:33]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[08:17:33]   ✓ Cat 11 (Telefonia): 79 SKUs únicos
+[08:17:33] Cat 12: Servidores y Almacenamiento — navegando...
+[08:17:37]   Pág 1: +59 (total 59)
+[08:17:37]   → No hay botón siguiente, fin
+[08:17:37]   ✓ Cat 12 (Servidores y Almacenamiento): 59 SKUs únicos
+[08:17:37] Cat 13: Papel — navegando...
+[08:17:41]   Pág 1: +59 (total 59)
+[08:17:41]   → No hay botón siguiente, fin
+[08:17:41]   ✓ Cat 13 (Papel): 59 SKUs únicos
+[08:17:41] Cat 14: Oficina y Escolar — navegando...
+[08:17:47]   Pág 1: +78 (total 78)
+[08:18:09]   Pág 2: +20 (total 98)
+[08:18:31]   Pág 3: +20 (total 118)
+[08:18:54]   Pág 4: +20 (total 138)
+[08:19:16]   Pág 5: +20 (total 158)
+[08:19:38]   Pág 6: +20 (total 178)
+[08:20:00]   Pág 7: +20 (total 198)
+[08:20:22]   Pág 8: +20 (total 218)
+[08:20:45]   Pág 9: +20 (total 238)
+[08:21:07]   Pág 10: +20 (total 258)
+[08:21:29]   Pág 11: +20 (total 278)
+[08:21:51]   Pág 12: +20 (total 298)
+[08:22:13]   Pág 13: +20 (total 318)
+[08:22:35]   Pág 14: +20 (total 338)
+[08:22:58]   Pág 15: +20 (total 358)
+[08:23:20]   Pág 16: +20 (total 378)
+[08:23:42]   Pág 17: +20 (total 398)
+[08:24:04]   Pág 18: +20 (total 418)
+[08:24:27]   Pág 19: +20 (total 438)
+[08:24:49]   Pág 20: +20 (total 458)
+[08:25:11]   Pág 21: +20 (total 478)
+[08:25:33]   Pág 22: +20 (total 498)
+[08:25:56]   Pág 23: +20 (total 518)
+[08:26:18]   Pág 24: +20 (total 538)
+[08:26:40]   Pág 25: +20 (total 558)
+[08:27:02]   Pág 26: +20 (total 578)
+[08:27:25]   Pág 27: +20 (total 598)
+[08:27:47]   Pág 28: +20 (total 618)
+[08:28:09]   Pág 29: +5 (total 623)
+[08:28:09]   → No hay botón siguiente, fin
+[08:28:09]   ✓ Cat 14 (Oficina y Escolar): 623 SKUs únicos
+[08:28:09] Cat 15: Puntos de Venta — navegando...
+[08:28:14]   Pág 1: +79 (total 79)
+[08:28:36]   Pág 2: +20 (total 99)
+[08:28:59]   Pág 3: +19 (total 118)
+[08:29:21]   Pág 4: +20 (total 138)
+[08:29:43]   Pág 5: +20 (total 158)
+[08:30:05]   Pág 6: +20 (total 178)
+[08:30:27]   Pág 7: +20 (total 198)
+[08:30:49]   Pág 8: +20 (total 218)
+[08:31:12]   Pág 9: +20 (total 238)
+[08:31:34]   Pág 10: +20 (total 258)
+[08:31:56]   Pág 11: +20 (total 278)
+[08:32:18]   Pág 12: +20 (total 298)
+[08:32:41]   Pág 13: +20 (total 318)
+[08:33:03]   Pág 14: +20 (total 338)
+[08:33:25]   Pág 15: +20 (total 358)
+[08:33:48]   Pág 16: +20 (total 378)
+[08:34:10]   Pág 17: +19 (total 397)
+[08:34:32]   Pág 18: +11 (total 408)
+[08:34:32]   → No hay botón siguiente, fin
+[08:34:32]   ✓ Cat 15 (Puntos de Venta): 408 SKUs únicos
+[08:34:32] Cat 16: Videovigilancia — navegando...
+[08:34:38]   Pág 1: +78 (total 78)
+[08:34:43]   Pág 2: +3 (total 81)
+[08:35:05]   Pág 3: +0 (total 81)
+[08:35:27]   Pág 4: +0 (total 81)
+[08:35:27]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[08:35:27]   ✓ Cat 16 (Videovigilancia): 81 SKUs únicos
+[08:35:27] 
+============================================================
+[08:35:27] RESUMEN COLECTOR
+[08:35:27]   Cat  1 Computo                       :    79 SKUs
+[08:35:27]   Cat  2 Impresion y Multifuncionales  :    78 SKUs
+[08:35:27]   Cat  3 Consumibles                   :  2056 SKUs
+[08:35:27]   Cat  4 Almacenamiento                :   856 SKUs
+[08:35:27]   Cat  5 Electronica de Consumo        :    82 SKUs
+[08:35:27]   Cat  6 Camara Video y Proyeccion     :   292 SKUs
+[08:35:27]   Cat  7 Audio y Entretenimiento       :    59 SKUs
+[08:35:27]   Cat  8 Redes                         :    81 SKUs
+[08:35:27]   Cat  9 Software y Garantias          :   667 SKUs
+[08:35:27]   Cat 10 Energia y Cables              :    82 SKUs
+[08:35:27]   Cat 11 Telefonia                     :    79 SKUs
+[08:35:27]   Cat 12 Servidores y Almacenamiento   :    59 SKUs
+[08:35:27]   Cat 13 Papel                         :    59 SKUs
+[08:35:27]   Cat 14 Oficina y Escolar             :   623 SKUs
+[08:35:27]   Cat 15 Puntos de Venta               :   408 SKUs
+[08:35:27]   Cat 16 Videovigilancia               :    81 SKUs
+[08:35:27]   TOTAL únicos: 4756
+[08:35:27]   Archivo: /Users/ingfelipe/syscom-odoo-sync/.exel_skus.json
+[08:35:27] ============================================================

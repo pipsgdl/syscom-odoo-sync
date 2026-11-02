@@ -1,0 +1,41 @@
+[06:00:02] ======================================================================
+[06:00:02] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:02] ======================================================================
+[06:00:02] Descargando cache CT desde Oracle...
+[06:00:03]   ✓ Cache actualizado: 5872 productos, 13081 keys, generado 2026-06-24 11:45:04
+[06:00:03] Productos únicos en cache: 5872
+[06:00:04] Conectado a Odoo UID=2
+[06:00:04] Precargando SKUs de Odoo...
+[06:00:35]   84233 SKUs cargados
+[06:00:35] Precargando supplierinfo CT (partner=93)...
+[06:00:37]   7323 supplierinfo CT cargados
+[06:00:37]   Progreso: 100/5872 (new=0, upd=0, err=0)
+[06:01:10]   Progreso: 200/5872 (new=0, upd=0, err=0)
+[06:03:49]   Progreso: 300/5872 (new=0, upd=0, err=0)
+[06:06:08]   Progreso: 400/5872 (new=0, upd=0, err=0)
+[06:07:43]   Progreso: 500/5872 (new=1, upd=2, err=0)
+[06:08:22]   Progreso: 600/5872 (new=1, upd=2, err=0)
+[06:08:25]   Progreso: 700/5872 (new=1, upd=2, err=0)
+[06:09:42]   Progreso: 800/5872 (new=1, upd=2, err=0)
+[06:11:38]   Progreso: 900/5872 (new=1, upd=2, err=0)
+[06:13:18]   Progreso: 1000/5872 (new=1, upd=2, err=0)
+[06:15:10]   Progreso: 1100/5872 (new=1, upd=2, err=0)
+[06:17:22]   Progreso: 1200/5872 (new=1, upd=2, err=0)
+[06:17:46]   Progreso: 1300/5872 (new=1, upd=2, err=0)
+[06:17:46]   Progreso: 1400/5872 (new=1, upd=2, err=0)
+[06:17:52]   Progreso: 1500/5872 (new=1, upd=2, err=0)
+[06:19:23]   Progreso: 1600/5872 (new=1, upd=2, err=0)
+[06:21:58]   Progreso: 1700/5872 (new=1, upd=2, err=0)
+[06:23:41]   Progreso: 1800/5872 (new=2, upd=2, err=0)
+[06:24:05]   Progreso: 1900/5872 (new=2, upd=2, err=0)
+[06:25:01]   Progreso: 2000/5872 (new=3, upd=2, err=0)
+[06:25:30]   Progreso: 2100/5872 (new=3, upd=3, err=0)
+[06:28:09]   Progreso: 2200/5872 (new=3, upd=3, err=0)
+[06:30:44]   Progreso: 2300/5872 (new=3, upd=3, err=0)
+[06:33:21]   Progreso: 2400/5872 (new=3, upd=3, err=0)
+[06:35:26]   Progreso: 2500/5872 (new=3, upd=3, err=0)
+[06:35:53]   Progreso: 2600/5872 (new=3, upd=4, err=0)
+[06:37:09]   Progreso: 2700/5872 (new=4, upd=4, err=0)
+[06:38:34]   Progreso: 2800/5872 (new=4, upd=4, err=0)
+[06:39:36]   Progreso: 2900/5872 (new=4, upd=4, err=0)
+[06:41:32]   Progreso: 3000/5872 (new=7, upd=4, err=0)

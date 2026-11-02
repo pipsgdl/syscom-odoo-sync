@@ -1,0 +1,28 @@
+[19:18:39] ======================================================================
+[19:18:39] EXEL → Odoo Sync (dry=False, diff=False, cat=None, limit=None)
+[19:18:39] ======================================================================
+[19:18:42] Conectado Odoo UID=2
+[19:18:42] Precargando SKUs Odoo...
+[19:19:21]   84308 SKUs Odoo cargados
+[19:19:21] 
+=== Categoría 1: Computo (margin=computo) ===
+[19:19:21]   76 SKUs encontrados
+[19:22:31]   Progreso: 50 (new=0 upd=37 chg=0 err=0)
+[19:24:28] 
+=== Categoría 2: Impresion y Multifuncionales (margin=impresion) ===
+[19:24:28]   1061 SKUs encontrados
+[19:25:23]   Progreso: 100 (new=0 upd=70 chg=0 err=0)
+[19:27:37]   Progreso: 150 (new=0 upd=95 chg=0 err=0)
+[19:29:48]   Progreso: 200 (new=0 upd=120 chg=0 err=0)
+[19:31:53]   Progreso: 250 (new=0 upd=144 chg=0 err=0)
+[19:33:44]   Progreso: 300 (new=0 upd=166 chg=0 err=0)
+[19:35:16]   Progreso: 350 (new=0 upd=192 chg=0 err=0)
+[19:36:38]   Progreso: 400 (new=0 upd=215 chg=0 err=0)
+[19:38:18]   Progreso: 450 (new=0 upd=243 chg=0 err=0)
+[19:39:41]   Progreso: 500 (new=0 upd=267 chg=0 err=0)
+[19:41:05]   Progreso: 550 (new=0 upd=289 chg=0 err=0)
+[19:42:47]   Progreso: 600 (new=0 upd=319 chg=0 err=0)
+[19:44:11]   Progreso: 650 (new=0 upd=341 chg=0 err=0)
+[19:45:38]   Progreso: 700 (new=0 upd=363 chg=0 err=0)
+[19:47:04]   Progreso: 750 (new=0 upd=386 chg=0 err=0)
+[19:48:18]   Progreso: 800 (new=0 upd=405 chg=0 err=0)

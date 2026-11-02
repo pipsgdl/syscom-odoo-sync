@@ -1,0 +1,6 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:08]   ✓ Cache actualizado: 5778 productos, 12872 keys, generado 2026-07-03 12:00:05
+[06:00:08] Productos únicos en cache: 5778

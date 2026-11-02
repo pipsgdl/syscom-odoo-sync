@@ -1,0 +1,33 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:04]   ✓ Cache actualizado: 5726 productos, 12769 keys, generado 2026-07-22 12:00:04
+[06:00:04] Productos únicos en cache: 5726
+Traceback (most recent call last):
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/ct_to_odoo_sync.py", line 593, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/ct_to_odoo_sync.py", line 537, in main
+    odoo.connect()
+    ~~~~~~~~~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/ct_to_odoo_sync.py", line 205, in connect
+    self.uid = common.authenticate(self.db, self.username, self.password, {})
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1096, in __call__
+    return self.__send(self.__name, args)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1435, in __request
+    response = self.__transport.request(
+        self.__host,
+    ...<2 lines>...
+        verbose=self.__verbose
+        )
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1140, in request
+    return self.single_request(host, handler, request_body, verbose)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1170, in single_request
+    raise ProtocolError(
+    ...<3 lines>...
+        )
+xmlrpc.client.ProtocolError: <ProtocolError for ocean-tech.odoo.com/xmlrpc/2/common: 429 Too Many Requests>

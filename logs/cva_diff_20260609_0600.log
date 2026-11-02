@@ -1,0 +1,26 @@
+[08:01:01] Cache /tmp/cva_full.json tiene 23.8h — comparar diff
+[08:01:01] Descargando 276 páginas CVA...
+[08:02:10]   pág 25: 900 arts
+[08:03:21]   pág 50: 1800 arts
+[08:04:30]   pág 75: 2700 arts
+[08:05:37]   pág 100: 3600 arts
+[08:06:55]   pág 125: 4500 arts
+[08:08:07]   pág 150: 5400 arts
+[08:09:19]   pág 175: 6300 arts
+[08:10:28]   pág 200: 7200 arts
+[08:11:53]   pág 225: 8100 arts
+[08:13:01]   pág 250: 9000 arts
+[08:14:09]   pág 275: 9900 arts
+[08:14:19]   total: 9956 artículos
+[08:14:19] Listando supplierinfo CVA en Odoo...
+[08:14:21]   Supplierinfo CVA: 13110
+[08:14:21] Procesando precios + stock...
+[08:14:21] Aplicando 1 cambios precio + 0 stock...
+[08:14:21] 
+✅ CVA sync done
+[08:14:21]   proc: 9,955
+[08:14:21]   price_changed: 1
+[08:14:21]   unchanged: 12
+[08:14:21]   sin_match_odoo: 9,941
+[08:14:21]   errors: 0
+[08:14:21]   duration: 800s

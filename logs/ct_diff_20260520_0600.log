@@ -1,0 +1,6 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:05]   ✓ Cache actualizado: 5937 productos, 13220 keys, generado 2026-05-20 11:45:04
+[06:00:05] ERROR cargando cache: Unterminated string starting at: line 1 column 3126285 (char 3126284)

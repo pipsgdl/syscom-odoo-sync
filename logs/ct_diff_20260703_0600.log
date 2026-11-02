@@ -1,0 +1,14 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:08]   ✓ Cache actualizado: 5778 productos, 12872 keys, generado 2026-07-03 12:00:05
+[06:00:08] Productos únicos en cache: 5778
+Traceback (most recent call last):
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/ct_to_odoo_sync.py", line 590, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/ct_to_odoo_sync.py", line 532, in main
+    cfg = json.load(open(CONFIG_PATH))
+                    ~~~~^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted: '/Volumes/HIKSEMI 512/Antigravity/mcp-odoo/odoo_config_prod.json'

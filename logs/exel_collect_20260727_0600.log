@@ -1,0 +1,107 @@
+[06:04:20] Login con user=GDL1657XL06691
+[06:04:36] Cat 1: Computo — navegando...
+[06:04:47]   Pág 1: +76 (total 76)
+[06:05:11]   Pág 2: +0 (total 76)
+[06:05:46]   Pág 3: +0 (total 76)
+[06:05:46]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[06:05:46]   ✓ Cat 1 (Computo): 76 SKUs únicos
+[06:05:46] Cat 2: Impresion y Multifuncionales — navegando...
+[06:06:49]   ❌ ERROR cat 2: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=2", waiting until "networkidle"
+
+[06:06:49] Cat 3: Consumibles — navegando...
+[06:07:52]   ❌ ERROR cat 3: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=3", waiting until "networkidle"
+
+[06:07:53] Cat 4: Almacenamiento — navegando...
+[06:08:53]   ❌ ERROR cat 4: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=4", waiting until "networkidle"
+
+[06:08:54] Cat 5: Electronica de Consumo — navegando...
+[06:09:59]   ❌ ERROR cat 5: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=5", waiting until "networkidle"
+
+[06:09:59] Cat 6: Camara Video y Proyeccion — navegando...
+[06:11:03]   ❌ ERROR cat 6: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=6", waiting until "networkidle"
+
+[06:11:03] Cat 7: Audio y Entretenimiento — navegando...
+[06:12:04]   ❌ ERROR cat 7: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=7", waiting until "networkidle"
+
+[06:12:04] Cat 8: Redes — navegando...
+[06:12:32]   Pág 1: +56 (total 56)
+[06:13:17]   Pág 2: +19 (total 75)
+[06:13:45]   Pág 3: +0 (total 75)
+[06:14:12]   Pág 4: +0 (total 75)
+[06:14:12]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[06:14:12]   ✓ Cat 8 (Redes): 75 SKUs únicos
+[06:14:13] Cat 9: Software y Garantias — navegando...
+[06:15:15]   ❌ ERROR cat 9: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=9", waiting until "networkidle"
+
+[06:15:15] Cat 10: Energia y Cables — navegando...
+[06:16:16]   ❌ ERROR cat 10: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=10", waiting until "networkidle"
+
+[06:16:16] Cat 11: Telefonia — navegando...
+[06:17:19]   ❌ ERROR cat 11: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=11", waiting until "networkidle"
+
+[06:17:19] Cat 12: Servidores y Almacenamiento — navegando...
+[06:18:23]   ❌ ERROR cat 12: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=12", waiting until "networkidle"
+
+[06:18:23] Cat 13: Papel — navegando...
+[06:19:25]   ❌ ERROR cat 13: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=13", waiting until "networkidle"
+
+[06:19:26] Cat 14: Oficina y Escolar — navegando...
+[06:20:28]   ❌ ERROR cat 14: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "https://www.exel.com.mx/xlstore/Productos/buscar.aspx?IdCategoria=14", waiting until "networkidle"
+
+[06:20:28] Cat 15: Puntos de Venta — navegando...
+[06:21:30]   Pág 1: +0 (total 0)
+[06:21:31]   → No hay botón siguiente, fin
+[06:21:31]   ✓ Cat 15 (Puntos de Venta): 0 SKUs únicos
+[06:21:32] Cat 16: Videovigilancia — navegando...
+[06:22:46]   Pág 1: +56 (total 56)
+[06:24:18]   Pág 2: +20 (total 76)
+[06:24:58]   Pág 3: +0 (total 76)
+[06:25:24]   Pág 4: +0 (total 76)
+[06:25:24]   → Sin SKUs nuevos por 2 páginas, fin de categoría
+[06:25:24]   ✓ Cat 16 (Videovigilancia): 76 SKUs únicos
+[06:25:54] 
+============================================================
+[06:25:54] RESUMEN COLECTOR
+[06:25:54]   Cat  1 Computo                       :    76 SKUs
+[06:25:54]   Cat  2 Impresion y Multifuncionales  :    75 SKUs
+[06:25:54]   Cat  3 Consumibles                   :  2053 SKUs
+[06:25:54]   Cat  4 Almacenamiento                :   674 SKUs
+[06:25:54]   Cat  5 Electronica de Consumo        :    79 SKUs
+[06:25:54]   Cat  6 Camara Video y Proyeccion     :   289 SKUs
+[06:25:54]   Cat  7 Audio y Entretenimiento       :    56 SKUs
+[06:25:54]   Cat  8 Redes                         :    75 SKUs
+[06:25:54]   Cat  9 Software y Garantias          :   664 SKUs
+[06:25:54]   Cat 10 Energia y Cables              :    80 SKUs
+[06:25:54]   Cat 11 Telefonia                     :    76 SKUs
+[06:25:54]   Cat 12 Servidores y Almacenamiento   :    56 SKUs
+[06:25:54]   Cat 13 Papel                         :    56 SKUs
+[06:25:54]   Cat 14 Oficina y Escolar             :   621 SKUs
+[06:25:54]   Cat 15 Puntos de Venta               :     0 SKUs
+[06:25:54]   Cat 16 Videovigilancia               :    76 SKUs
+[06:25:54]   TOTAL únicos: 4222
+[06:25:54]   Archivo: /Users/ingfelipe/syscom-odoo-sync/.exel_skus.json
+[06:25:54] ============================================================

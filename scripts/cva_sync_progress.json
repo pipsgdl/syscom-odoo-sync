@@ -1,0 +1,13 @@
+{
+  "started": "2026-08-20T07:13:47.427102",
+  "mode": "diff",
+  "processed": 9402,
+  "new": 0,
+  "price_changed": 6,
+  "unchanged": 9,
+  "errors": 0,
+  "sin_match_odoo": 9227,
+  "sin_precio": 160,
+  "ended": "2026-08-20T08:03:10.230595",
+  "duration_sec": 2962
+}

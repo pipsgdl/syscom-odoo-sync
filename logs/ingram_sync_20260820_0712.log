@@ -1,0 +1,5 @@
+[07:12:26] ======================================================================
+[07:12:26] INGRAM → Odoo Sync (dry_run=False, diff=True, limit=None, vendor=None)
+[07:12:26] ======================================================================
+[07:12:53]   ERROR refresh OAuth: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)>
+[07:12:53] ABORT: no se pudo obtener access token.

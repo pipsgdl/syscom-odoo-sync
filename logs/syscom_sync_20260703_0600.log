@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/syscom_to_odoo_prod_sync.py", line 712, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/syscom_to_odoo_prod_sync.py", line 602, in main
+    with open(CONFIG_PATH) as f:
+         ~~~~^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted: '/Volumes/HIKSEMI 512/Antigravity/mcp-odoo/odoo_config_prod.json'

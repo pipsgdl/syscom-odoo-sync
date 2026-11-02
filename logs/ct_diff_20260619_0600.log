@@ -1,0 +1,6 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:05]   ✓ Cache actualizado: 5889 productos, 13119 keys, generado 2026-06-19 12:00:05
+[06:00:05] ERROR cargando cache: Expecting ',' delimiter: line 1 column 781908 (char 781907)

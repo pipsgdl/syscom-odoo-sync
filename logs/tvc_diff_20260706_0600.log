@@ -1,0 +1,10 @@
+[08:29:15] Cache TVC: tvc_catalogo_2026-07-06.json  (2h antigüedad)
+[08:29:15] Listando supplierinfo TVC...
+[08:29:18]   Supplierinfo: 12250
+[08:29:18] Aplicando 0 cambios precio...
+[08:29:18] 
+✅ TVC sync done
+[08:29:18]   proc: 60
+[08:29:18]   price_changed: 0
+[08:29:18]   unchanged: 0
+[08:29:18]   sin_match_odoo: 0

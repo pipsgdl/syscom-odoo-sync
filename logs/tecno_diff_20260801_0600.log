@@ -1,0 +1,12 @@
+[06:11:47] Descargando catálogo Tecno v3...
+[06:11:57]   2348 items
+[06:11:57] Listando supplierinfo Tecnosinergia...
+[06:11:59]   Supplierinfo: 2456
+[06:11:59] Aplicando 795 cambios precio...
+[06:20:38] 
+✅ Tecno sync done
+[06:20:38]   proc: 2,348
+[06:20:38]   price_changed: 795
+[06:20:38]   unchanged: 1,446
+[06:20:38]   sin_match_odoo: 107
+[06:20:38]   errors: 0

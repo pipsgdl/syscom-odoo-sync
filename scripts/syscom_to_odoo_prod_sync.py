@@ -36,7 +36,7 @@ PROGRESS_FILE = os.path.join(SCRIPTS_DIR, "sync_progress.json")
 LOG_FILE = os.path.join(SCRIPTS_DIR, f"sync_log_{datetime.now().strftime('%Y%m%d_%H%M')}.txt")
 
 # Syscom API
-SYSCOM_TOKEN_URL = "https://developers.syscom.mx/oauth/token"
+SYSCOM_TOKEN_URL = "https://developers.syscom.mx/api/v1/oauth/token"
 SYSCOM_API_URL = "https://developers.syscom.mx/api/v1/productos"
 SYSCOM_CLIENT_ID = "zq2u2Zr1VFGam5IzAg5UolwmeSnsChP7"
 SYSCOM_CLIENT_SECRET = "thdUXtjZunSRT4IB1ascUHIZlWsA5PhtIL9mBWVz"

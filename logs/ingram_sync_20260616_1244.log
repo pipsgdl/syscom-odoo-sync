@@ -1,0 +1,3 @@
+[12:44:14]   ERROR refresh OAuth 400: {"error":"invalid_grant","error_description":"The refresh token is invalid or expired."}
+[12:44:14]   El refresh_token expiro o se invalido.
+[12:44:14]   Loguea de nuevo en Chrome y copia el nuevo refresh_token al .env

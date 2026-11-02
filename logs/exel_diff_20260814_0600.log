@@ -1,0 +1,7 @@
+[08:07:33] ======================================================================
+[08:07:33] EXEL → Odoo Sync (dry=False, diff=True, cat=None, limit=None)
+[08:07:33] ======================================================================
+[08:07:33] Sesión expirada, refrescando...
+[08:07:33] Refrescando login Exel via Playwright...
+[08:08:17]   ERROR Playwright login: 
+[08:08:17] ABORT: re-login falló

@@ -13,6 +13,13 @@ Uso:
   techsmart_buscar.py "TARJETAS DE VIDEO" "T" --min 300      # filtra por precio minimo (MXN)
 
 Normaliza SIEMPRE a MXN (USD -> MXN con el tipo de cambio que el propio sitio muestra).
+
+Nota (2026-07-20): el regex de precio exigía exactamente 2 decimales (`\d{2}`). Cualquier
+producto mostrado como "Consultar precio", "Agotado", o con formato de precio distinto
+(sin decimales, 1 decimal, etc.) no matcheaba -> precio_mxn=0.0 -> se descartaba
+silenciosamente como si "no tuviera precio", indistinguible de un catálogo genuinamente
+vacío. Fix: regex tolera 1-2 decimales opcionales, y ahora se reporta explícitamente
+cuántos productos se encontraron pero se descartaron por no poder parsear su precio.
 """
 import argparse, re, sys
 import requests
@@ -53,13 +60,17 @@ def parse_pagina(h, tc):
         seg = h[m.start(): anc[i+1].start() if i+1 < len(anc) else m.start()+2600]
         d = re.search(r'text-card">\s*(.*?)\s*<br', seg, re.S)
         desc = re.sub(r'\s+', ' ', d.group(1)).strip() if d else ''
-        # BUGFIX: acepta USD o MXN -- NUNCA solo MXN (ver README, categorias enteras vienen en USD)
-        pr = re.findall(r'\$([\d,]+\.\d{2})\s*(USD|MXN)', seg)
+        # BUGFIX 2026-07-06: acepta USD o MXN -- NUNCA solo MXN (categorias enteras vienen en USD)
+        # BUGFIX 2026-07-20: decimales opcionales/variables -- "Consultar precio"/"Agotado" ya no
+        # se confunden con precio=0 parseado correctamente; se marcan como precio_parseable=False.
+        pr = re.findall(r'\$([\d,]+(?:\.\d{1,2})?)\s*(USD|MXN)', seg)
         vals = [(float(x.replace(',', '')), cur) for x, cur in pr]
+        precio_parseable = bool(vals)
         pl, pl_cur = vals[0] if vals else (0.0, 'MXN')
         pd, pd_cur = vals[1] if len(vals) > 1 else (pl, pl_cur)
         if pd_cur == 'USD': pd = round(pd * tc, 2)
-        out.append({'codigo': cod, 'marca': marca, 'desc': desc, 'precio_mxn': pd})
+        out.append({'codigo': cod, 'marca': marca, 'desc': desc, 'precio_mxn': pd,
+                    'precio_parseable': precio_parseable})
     return out
 
 
@@ -84,19 +95,32 @@ def main():
     s = login(env)
     prods, tc = buscar(s, env['TECHSMART_BASE'], args.categoria, args.marca)
 
+    total_encontrados = len(prods)
+    no_parseables = [p for p in prods if not p['precio_parseable']]
+
     if args.contiene:
         prods = [p for p in prods if args.contiene.lower() in p['desc'].lower()]
-    prods = [p for p in prods if p['precio_mxn'] > 0 and args.min <= p['precio_mxn'] <= args.max]
-    prods.sort(key=lambda p: p['precio_mxn'])
+    prods_con_precio = [p for p in prods if p['precio_parseable'] and p['precio_mxn'] > 0
+                         and args.min <= p['precio_mxn'] <= args.max]
+    prods_con_precio.sort(key=lambda p: p['precio_mxn'])
 
     print(f"Techsmart · {args.categoria} / {args.marca} · t.c. USD->MXN: {tc}")
-    print(f"{len(prods)} producto(s) con precio\n")
-    for p in prods:
+    print(f"{len(prods_con_precio)} producto(s) con precio\n")
+    for p in prods_con_precio:
         print(f"  {p['codigo']:20} ${p['precio_mxn']:>10,.2f} MXN  [{p['marca']}]  {p['desc'][:80]}")
-    if not prods:
+    if not prods_con_precio:
         print("  (sin resultados con precio -- revisa el README: puede ser un combo sin catalogo,\n"
               "   o una categoria que Techsmart genuinamente no maneja para esta cuenta)")
 
+    if no_parseables:
+        print(f"\n⚠️  {len(no_parseables)} de {total_encontrados} producto(s) encontrados en esta "
+              f"categoría/marca NO se pudieron leer con precio (posible 'Consultar precio', 'Agotado', "
+              f"o formato inesperado) -- NO están incluidos arriba, verificar manualmente si son relevantes:")
+        for p in no_parseables[:15]:
+            print(f"  {p['codigo']:20} [{p['marca']}]  {p['desc'][:80]}")
+        if len(no_parseables) > 15:
+            print(f"  ... y {len(no_parseables) - 15} más")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main() or 0)

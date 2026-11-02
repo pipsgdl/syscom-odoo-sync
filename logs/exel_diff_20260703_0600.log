@@ -1,0 +1,11 @@
+[07:30:00] ======================================================================
+[07:30:00] EXEL → Odoo Sync (dry=False, diff=True, cat=None, limit=None)
+[07:30:00] ======================================================================
+Traceback (most recent call last):
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/exel_to_odoo_sync.py", line 621, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/exel_to_odoo_sync.py", line 553, in main
+    cfg = json.load(open(CONFIG_PATH))
+                    ~~~~^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted: '/Volumes/HIKSEMI 512/Antigravity/mcp-odoo/odoo_config_prod.json'

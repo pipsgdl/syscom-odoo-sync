@@ -1,0 +1,7 @@
+[06:03:45] ======================================================================
+[06:03:45] INGRAM → Odoo Sync (dry_run=False, diff=True, limit=None, vendor=None)
+[06:03:45] ======================================================================
+[06:03:46]   ERROR refresh OAuth 400: {"error":"invalid_grant","error_description":"The refresh token is invalid or expired."}
+[06:03:46]   El refresh_token expiro o se invalido.
+[06:03:46]   Loguea de nuevo en Chrome y copia el nuevo refresh_token al .env
+[06:03:46] ABORT: no se pudo obtener access token.

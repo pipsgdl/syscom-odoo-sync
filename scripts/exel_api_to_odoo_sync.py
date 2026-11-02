@@ -44,11 +44,18 @@ def rpc(model, method, args, kwargs=None):
     return None
 
 def descargar_api():
+    # Nota (2026-07-20): confirmado en vivo que /productos NO pagina -- ignora
+    # page=/limit= y siempre regresa el catalogo completo en una sola respuesta
+    # (el campo "mensaje": "Datos N" coincide exacto con len(datos), verificado
+    # con N=8551). No hay riesgo de catalogo incompleto por paginacion silenciosa;
+    # el guardrail de abajo (< 500 items) sigue siendo la red de seguridad real
+    # para catalogo roto/vacio.
     base, key = ENVV["EXEL_API_BASE"], ENVV["EXEL_API_KEY"]
     req = urllib.request.Request(base + "/productos", headers={"Authorization": key})
     raw = urllib.request.urlopen(req, timeout=180).read().decode("utf-8", "ignore")
-    datos = json.loads(raw).get("datos", [])
-    log(f"API Exel: {len(datos)} productos")
+    body = json.loads(raw)
+    datos = body.get("datos", [])
+    log(f"API Exel: {len(datos)} productos (mensaje API: {body.get('mensaje')})")
     return datos
 
 def fnum(x):

@@ -1,0 +1,25 @@
+[09:47:42] Descargando 276 páginas CVA...
+[09:49:00]   pág 25: 900 arts
+[09:50:07]   pág 50: 1800 arts
+[09:51:33]   pág 75: 2700 arts
+[09:53:49]   pág 100: 3600 arts
+[09:55:19]   pág 125: 4500 arts
+[09:56:27]   pág 150: 5400 arts
+[09:57:34]   pág 175: 6300 arts
+[09:58:46]   pág 200: 7200 arts
+[09:59:53]   pág 225: 8100 arts
+[10:01:56]   pág 250: 9000 arts
+[10:03:04]   pág 275: 9810 arts
+[10:03:13]   total: 9810 artículos
+[10:03:14] Listando supplierinfo CVA en Odoo...
+[10:03:16]   Supplierinfo CVA: 13110
+[10:03:16] Procesando precios + stock...
+[10:03:16] Aplicando 6 cambios precio + 15 stock...
+[10:03:23] 
+✅ CVA sync done
+[10:03:23]   proc: 9,809
+[10:03:23]   price_changed: 6
+[10:03:23]   unchanged: 9
+[10:03:23]   sin_match_odoo: 9,793
+[10:03:23]   errors: 0
+[10:03:23]   duration: 941s

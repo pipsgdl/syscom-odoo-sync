@@ -1,0 +1,83 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:04]   ✓ Cache actualizado: 6021 productos, 13420 keys, generado 2026-05-08 11:45:04
+[06:00:04] Productos únicos en cache: 6021
+[06:00:05] Conectado a Odoo UID=2
+[06:00:05] Precargando SKUs de Odoo...
+[06:00:30]   62772 SKUs cargados
+[06:00:30] Precargando supplierinfo CT (partner=93)...
+[06:00:33]   6507 supplierinfo CT cargados
+[06:00:35]   Progreso: 100/6021 (new=0, upd=0, err=0)
+[06:00:38]   Progreso: 200/6021 (new=1, upd=0, err=0)
+[06:00:39]   Progreso: 300/6021 (new=1, upd=1, err=0)
+[06:00:41]   Progreso: 400/6021 (new=1, upd=2, err=0)
+[06:00:45]   Progreso: 500/6021 (new=3, upd=2, err=0)
+[06:00:50]   Progreso: 600/6021 (new=3, upd=5, err=0)
+[06:00:51]   Progreso: 700/6021 (new=3, upd=6, err=0)
+[06:00:51]   Progreso: 800/6021 (new=3, upd=6, err=0)
+[06:00:53]   Progreso: 900/6021 (new=3, upd=7, err=0)
+[06:00:55]   Progreso: 1000/6021 (new=3, upd=8, err=0)
+[06:00:59]   Progreso: 1100/6021 (new=4, upd=8, err=0)
+[06:01:05]   Progreso: 1200/6021 (new=4, upd=11, err=0)
+[06:01:07]   Progreso: 1300/6021 (new=4, upd=11, err=0)
+[06:01:11]   Progreso: 1400/6021 (new=4, upd=13, err=0)
+[06:01:12]   Progreso: 1500/6021 (new=4, upd=14, err=0)
+[06:01:12]   Progreso: 1600/6021 (new=4, upd=14, err=0)
+[06:01:16]   Progreso: 1700/6021 (new=4, upd=15, err=0)
+[06:01:16]   Progreso: 1800/6021 (new=4, upd=15, err=0)
+[06:01:18]   Progreso: 1900/6021 (new=4, upd=16, err=0)
+[06:01:21]   Progreso: 2000/6021 (new=4, upd=16, err=0)
+[06:01:22]   Progreso: 2100/6021 (new=4, upd=16, err=0)
+[06:01:26]   Progreso: 2200/6021 (new=4, upd=18, err=0)
+[06:01:26]   Progreso: 2300/6021 (new=4, upd=18, err=0)
+[06:01:30]   Progreso: 2400/6021 (new=5, upd=18, err=0)
+[06:01:33]   Progreso: 2500/6021 (new=6, upd=18, err=0)
+[06:01:35]   Progreso: 2600/6021 (new=6, upd=18, err=0)
+[06:01:35]   Progreso: 2700/6021 (new=6, upd=18, err=0)
+[06:01:38]   Progreso: 2800/6021 (new=6, upd=19, err=0)
+[06:01:40]   Progreso: 2900/6021 (new=6, upd=20, err=0)
+[06:01:40]   Progreso: 3000/6021 (new=6, upd=20, err=0)
+[06:01:45]   Progreso: 3100/6021 (new=6, upd=22, err=0)
+[06:01:51]   Progreso: 3200/6021 (new=6, upd=23, err=0)
+[06:01:53]   Progreso: 3300/6021 (new=6, upd=23, err=0)
+[06:01:57]   Progreso: 3400/6021 (new=8, upd=23, err=0)
+[06:02:00]   Progreso: 3500/6021 (new=8, upd=23, err=0)
+[06:02:05]   Progreso: 3600/6021 (new=8, upd=24, err=0)
+[06:02:08]   Progreso: 3700/6021 (new=8, upd=26, err=0)
+[06:02:12]   Progreso: 3800/6021 (new=8, upd=27, err=0)
+[06:02:17]   Progreso: 3900/6021 (new=8, upd=29, err=0)
+[06:02:22]   Progreso: 4000/6021 (new=8, upd=32, err=0)
+[06:02:22]   Progreso: 4100/6021 (new=8, upd=32, err=0)
+[06:02:28]   Progreso: 4200/6021 (new=8, upd=34, err=0)
+[06:02:33]   Progreso: 4300/6021 (new=8, upd=36, err=0)
+[06:02:38]   Progreso: 4400/6021 (new=8, upd=38, err=0)
+[06:02:38]   Progreso: 4500/6021 (new=8, upd=38, err=0)
+[06:02:40]   Progreso: 4600/6021 (new=8, upd=39, err=0)
+[06:02:49]   Progreso: 4700/6021 (new=8, upd=44, err=0)
+[06:02:54]   Progreso: 4800/6021 (new=8, upd=45, err=0)
+[06:02:58]   Progreso: 4900/6021 (new=9, upd=46, err=0)
+[06:02:58]   Progreso: 5000/6021 (new=9, upd=46, err=0)
+[06:03:03]   Progreso: 5100/6021 (new=9, upd=49, err=0)
+[06:03:08]   Progreso: 5200/6021 (new=9, upd=51, err=0)
+[06:03:11]   Progreso: 5300/6021 (new=9, upd=52, err=0)
+[06:03:15]   Progreso: 5400/6021 (new=9, upd=53, err=0)
+[06:03:18]   Progreso: 5500/6021 (new=9, upd=53, err=0)
+[06:03:20]   Progreso: 5600/6021 (new=9, upd=53, err=0)
+[06:03:21]   Progreso: 5700/6021 (new=9, upd=53, err=0)
+[06:03:23]   Progreso: 5800/6021 (new=9, upd=53, err=0)
+[06:03:24]   Progreso: 5900/6021 (new=9, upd=53, err=0)
+[06:03:26]   Progreso: 6000/6021 (new=9, upd=53, err=0)
+[06:03:31] ======================================================================
+[06:03:31] RESUMEN
+[06:03:31]   Procesados:       6021
+[06:03:31]   Nuevos:           9
+[06:03:31]   Actualizados:     54
+[06:03:31]   Cambios precio:   41
+[06:03:31]   Sin cambios:      5917
+[06:03:31]   Sin precio:       0
+[06:03:31]   Sin SKU:          0
+[06:03:31]   Inactivos:        0
+[06:03:31]   Errores:          0
+[06:03:31] ======================================================================

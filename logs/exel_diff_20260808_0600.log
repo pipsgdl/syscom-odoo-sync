@@ -1,0 +1,70 @@
+[07:05:51] ======================================================================
+[07:05:51] EXEL → Odoo Sync (dry=False, diff=True, cat=None, limit=None)
+[07:05:51] ======================================================================
+[07:05:51] Sesión expirada, refrescando...
+[07:05:51] Refrescando login Exel via Playwright...
+[07:06:05]   ✓ login refrescado
+[07:06:06] Conectado Odoo UID=2
+[07:06:06] Precargando SKUs Odoo...
+[07:06:36]   85110 SKUs Odoo cargados
+[07:06:36] Precargando supplierinfo Exel (partner=94)...
+[07:06:38]   4539 supplierinfo Exel cargados
+[07:06:38] 
+=== Categoría 1: Computo (margin=computo) ===
+[07:06:38]   58 SKUs encontrados
+[07:06:59]   Progreso: 50 (new=0 upd=0 chg=0 err=0)
+[07:07:02] 
+=== Categoría 2: Impresion y Multifuncionales (margin=impresion) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 3: Consumibles (margin=consumibles) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 4: Almacenamiento (margin=almacenamiento) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 5: Electronica de Consumo (margin=default) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 6: Camara Video y Proyeccion (margin=audiovideo) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 7: Audio y Entretenimiento (margin=audiovideo) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 8: Redes (margin=networking) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 9: Software y Garantias (margin=software) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 10: Energia y Cables (margin=energia) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 11: Telefonia (margin=default) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 12: Servidores y Almacenamiento (margin=almacenamiento) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 13: Papel (margin=papel_oficina) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 14: Oficina y Escolar (margin=papel_oficina) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 15: Puntos de Venta (margin=pos) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] 
+=== Categoría 16: Videovigilancia (margin=videovig) ===
+[07:07:02]   58 SKUs encontrados
+[07:07:02] ======================================================================
+[07:07:02] RESUMEN
+[07:07:02]   Procesados:    58
+[07:07:02]   Nuevos:        0
+[07:07:02]   Actualizados:  0
+[07:07:02]   Cambios precio: 0
+[07:07:02]   Sin cambios:    0
+[07:07:02]   Sin precio:    58
+[07:07:02]   Errores:       0
+[07:07:02] ======================================================================

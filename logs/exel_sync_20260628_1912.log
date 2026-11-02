@@ -1,0 +1,25 @@
+[19:12:51] ======================================================================
+[19:12:51] EXEL → Odoo Sync (dry=False, diff=False, cat=None, limit=None)
+[19:12:51] ======================================================================
+[19:12:52] Sesión expirada, refrescando...
+[19:12:52] Refrescando login Exel via Playwright...
+[19:13:05]   ✓ login refrescado
+[19:13:06] Conectado Odoo UID=2
+[19:13:06] Precargando SKUs Odoo...
+[19:13:31]   84309 SKUs Odoo cargados
+[19:13:31] 
+=== Categoría 1: Computo (margin=computo) ===
+[19:13:31]   76 SKUs encontrados
+[19:14:41]   Progreso: 50 (new=0 upd=37 chg=0 err=0)
+[19:15:24] 
+=== Categoría 2: Impresion y Multifuncionales (margin=impresion) ===
+[19:15:24]   1061 SKUs encontrados
+[19:15:44]   Progreso: 100 (new=0 upd=70 chg=0 err=0)
+[19:16:40]   Progreso: 150 (new=0 upd=95 chg=0 err=0)
+[19:18:15]   Progreso: 200 (new=0 upd=120 chg=0 err=0)
+[19:20:10]   Progreso: 250 (new=0 upd=144 chg=0 err=0)
+[19:22:14]   Progreso: 300 (new=0 upd=166 chg=0 err=0)
+[19:24:36]   Progreso: 350 (new=0 upd=192 chg=0 err=0)
+[19:26:41]   Progreso: 400 (new=0 upd=215 chg=0 err=0)
+[19:29:11]   Progreso: 450 (new=0 upd=243 chg=0 err=0)
+[19:31:19]   Progreso: 500 (new=0 upd=267 chg=0 err=0)

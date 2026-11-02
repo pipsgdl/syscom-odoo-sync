@@ -70,7 +70,7 @@ for ep in ENV_PATHS:
 
 SYSCOM_CLIENT_ID = os.environ.get("SYSCOM_CLIENT_ID", "")
 SYSCOM_CLIENT_SECRET = os.environ.get("SYSCOM_CLIENT_SECRET", "")
-SYSCOM_TOKEN_URL = "https://developers.syscom.mx/oauth/token"
+SYSCOM_TOKEN_URL = "https://developers.syscom.mx/api/v1/oauth/token"
 SYSCOM_PRODUCTOS_SEARCH = "https://developers.syscom.mx/api/v1/productos"
 
 # Odoo IDs

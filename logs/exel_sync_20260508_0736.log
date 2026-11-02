@@ -1,0 +1,164 @@
+[07:36:50] ======================================================================
+[07:36:50] EXEL → Odoo Sync (dry=False, diff=True, cat=None, limit=None)
+[07:36:50] ======================================================================
+[07:36:51] Conectado Odoo UID=2
+[07:36:51] Precargando SKUs Odoo...
+[07:37:16]   62782 SKUs Odoo cargados
+[07:37:16] Precargando supplierinfo Exel (partner=94)...
+[07:37:18]   3052 supplierinfo Exel cargados
+[07:37:18] 
+=== Categoría 1: Computo (margin=computo) ===
+[07:37:18]   78 SKUs encontrados
+[07:37:55]   Progreso: 50 (new=4 upd=0 chg=0 err=0)
+[07:38:15] 
+=== Categoría 2: Impresion y Multifuncionales (margin=impresion) ===
+[07:38:15]   1041 SKUs encontrados
+[07:38:29]   Progreso: 100 (new=5 upd=0 chg=0 err=0)
+[07:38:59]   Progreso: 150 (new=5 upd=0 chg=0 err=0)
+[07:39:32]   Progreso: 200 (new=6 upd=0 chg=1 err=0)
+[07:40:05]   Progreso: 250 (new=6 upd=0 chg=2 err=0)
+[07:40:36]   Progreso: 300 (new=6 upd=0 chg=2 err=0)
+[07:41:08]   Progreso: 350 (new=6 upd=0 chg=2 err=0)
+[07:41:43]   Progreso: 400 (new=7 upd=0 chg=2 err=0)
+[07:42:16]   Progreso: 450 (new=7 upd=0 chg=2 err=0)
+[07:42:47]   Progreso: 500 (new=7 upd=0 chg=2 err=0)
+[07:43:18]   Progreso: 550 (new=7 upd=0 chg=2 err=0)
+[07:43:49]   Progreso: 600 (new=7 upd=0 chg=2 err=0)
+[07:44:22]   Progreso: 650 (new=7 upd=0 chg=4 err=0)
+[07:44:54]   Progreso: 700 (new=7 upd=0 chg=4 err=0)
+[07:45:27]   Progreso: 750 (new=8 upd=0 chg=4 err=0)
+[07:45:59]   Progreso: 800 (new=8 upd=0 chg=4 err=0)
+[07:46:31]   Progreso: 850 (new=8 upd=0 chg=5 err=0)
+[07:47:02]   Progreso: 900 (new=8 upd=0 chg=5 err=0)
+[07:47:34]   Progreso: 950 (new=8 upd=0 chg=5 err=0)
+[07:48:06]   Progreso: 1000 (new=8 upd=0 chg=6 err=0)
+[07:48:39]   Progreso: 1050 (new=8 upd=0 chg=6 err=0)
+[07:48:48] 
+=== Categoría 3: Consumibles (margin=consumibles) ===
+[07:48:48]   2051 SKUs encontrados
+[07:49:10]   Progreso: 1100 (new=8 upd=0 chg=6 err=0)
+[07:49:41]   Progreso: 1150 (new=8 upd=0 chg=6 err=0)
+[07:50:12]   Progreso: 1200 (new=8 upd=0 chg=6 err=0)
+[07:50:44]   Progreso: 1250 (new=8 upd=0 chg=7 err=0)
+[07:51:17]   Progreso: 1300 (new=8 upd=0 chg=8 err=0)
+[07:51:49]   Progreso: 1350 (new=8 upd=0 chg=8 err=0)
+[07:52:20]   Progreso: 1400 (new=8 upd=0 chg=8 err=0)
+[07:52:52]   Progreso: 1450 (new=8 upd=0 chg=8 err=0)
+[07:53:26]   Progreso: 1500 (new=9 upd=0 chg=8 err=0)
+[07:53:58]   Progreso: 1550 (new=9 upd=0 chg=8 err=0)
+[07:54:30]   Progreso: 1600 (new=9 upd=0 chg=8 err=0)
+[07:55:01]   Progreso: 1650 (new=9 upd=0 chg=8 err=0)
+[07:55:34]   Progreso: 1700 (new=9 upd=0 chg=9 err=0)
+[07:56:04]   Progreso: 1750 (new=9 upd=0 chg=9 err=0)
+[07:56:37]   Progreso: 1800 (new=9 upd=0 chg=9 err=0)
+[07:57:11]   Progreso: 1850 (new=10 upd=0 chg=9 err=0)
+[07:57:42]   Progreso: 1900 (new=10 upd=0 chg=9 err=0)
+[07:58:12]   Progreso: 1950 (new=10 upd=0 chg=9 err=0)
+[07:58:43]   Progreso: 2000 (new=10 upd=0 chg=9 err=0)
+[07:59:14]   Progreso: 2050 (new=10 upd=0 chg=9 err=0)
+[07:59:45]   Progreso: 2100 (new=10 upd=0 chg=9 err=0)
+[08:00:16]   Progreso: 2150 (new=10 upd=0 chg=9 err=0)
+[08:00:48]   Progreso: 2200 (new=10 upd=0 chg=9 err=0)
+[08:01:22]   Progreso: 2250 (new=10 upd=0 chg=9 err=0)
+[08:01:55]   Progreso: 2300 (new=10 upd=0 chg=9 err=0)
+[08:02:28]   Progreso: 2350 (new=10 upd=0 chg=9 err=0)
+[08:02:59]   Progreso: 2400 (new=10 upd=0 chg=9 err=0)
+[08:03:30]   Progreso: 2450 (new=10 upd=0 chg=9 err=0)
+[08:04:01]   Progreso: 2500 (new=10 upd=0 chg=9 err=0)
+[08:04:33]   Progreso: 2550 (new=10 upd=0 chg=9 err=0)
+[08:05:03]   Progreso: 2600 (new=10 upd=0 chg=9 err=0)
+[08:05:35]   Progreso: 2650 (new=10 upd=0 chg=9 err=0)
+[08:06:07]   Progreso: 2700 (new=10 upd=0 chg=9 err=0)
+[08:06:39]   Progreso: 2750 (new=10 upd=0 chg=9 err=0)
+[08:07:13]   Progreso: 2800 (new=11 upd=0 chg=9 err=0)
+[08:07:44]   Progreso: 2850 (new=11 upd=0 chg=9 err=0)
+[08:08:16]   Progreso: 2900 (new=11 upd=0 chg=9 err=0)
+[08:08:47]   Progreso: 2950 (new=11 upd=0 chg=9 err=0)
+[08:09:18]   Progreso: 3000 (new=11 upd=0 chg=9 err=0)
+[08:09:54]   Progreso: 3050 (new=12 upd=0 chg=9 err=0)
+[08:10:01] 
+=== Categoría 4: Almacenamiento (margin=almacenamiento) ===
+[08:10:01]   75 SKUs encontrados
+[08:10:28] 
+=== Categoría 5: Electronica de Consumo (margin=default) ===
+[08:10:28]   77 SKUs encontrados
+[08:10:43]   Progreso: 3100 (new=19 upd=0 chg=9 err=0)
+[08:10:48] 
+=== Categoría 6: Camara Video y Proyeccion (margin=audiovideo) ===
+[08:10:48]   281 SKUs encontrados
+[08:11:17]   Progreso: 3150 (new=20 upd=0 chg=10 err=0)
+[08:11:53]   Progreso: 3200 (new=20 upd=0 chg=12 err=0)
+[08:12:25]   Progreso: 3250 (new=20 upd=0 chg=12 err=0)
+[08:13:00]   Progreso: 3300 (new=20 upd=0 chg=13 err=0)
+[08:13:24] 
+=== Categoría 7: Audio y Entretenimiento (margin=audiovideo) ===
+[08:13:24]   54 SKUs encontrados
+[08:13:24] 
+=== Categoría 8: Redes (margin=networking) ===
+[08:13:24]   76 SKUs encontrados
+[08:13:43]   Progreso: 3350 (new=24 upd=0 chg=14 err=0)
+[08:13:47] 
+=== Categoría 9: Software y Garantias (margin=software) ===
+[08:13:47]   648 SKUs encontrados
+[08:14:17]   Progreso: 3400 (new=24 upd=0 chg=15 err=0)
+[08:14:49]   Progreso: 3450 (new=24 upd=0 chg=15 err=0)
+[08:15:22]   Progreso: 3500 (new=24 upd=0 chg=15 err=0)
+[08:15:54]   Progreso: 3550 (new=24 upd=0 chg=15 err=0)
+[08:16:25]   Progreso: 3600 (new=24 upd=0 chg=15 err=0)
+[08:16:57]   Progreso: 3650 (new=24 upd=0 chg=15 err=0)
+[08:17:28]   Progreso: 3700 (new=24 upd=0 chg=15 err=0)
+[08:18:00]   Progreso: 3750 (new=24 upd=0 chg=15 err=0)
+[08:18:33]   Progreso: 3800 (new=24 upd=0 chg=15 err=0)
+[08:19:07]   Progreso: 3850 (new=24 upd=0 chg=15 err=0)
+[08:19:39]   Progreso: 3900 (new=24 upd=0 chg=15 err=0)
+[08:20:10] 
+=== Categoría 10: Energia y Cables (margin=energia) ===
+[08:20:10]   82 SKUs encontrados
+[08:20:11]   Progreso: 3950 (new=24 upd=0 chg=15 err=0)
+[08:20:37] 
+=== Categoría 11: Telefonia (margin=default) ===
+[08:20:37]   73 SKUs encontrados
+[08:20:49] 
+=== Categoría 12: Servidores y Almacenamiento (margin=almacenamiento) ===
+[08:20:49]   54 SKUs encontrados
+[08:20:49] 
+=== Categoría 13: Papel (margin=papel_oficina) ===
+[08:20:49]   54 SKUs encontrados
+[08:20:49] 
+=== Categoría 14: Oficina y Escolar (margin=papel_oficina) ===
+[08:20:49]   595 SKUs encontrados
+[08:20:51]   Progreso: 4000 (new=27 upd=0 chg=17 err=0)
+[08:21:25]   Progreso: 4050 (new=27 upd=0 chg=18 err=0)
+[08:21:58]   Progreso: 4100 (new=27 upd=0 chg=18 err=0)
+[08:22:30]   Progreso: 4150 (new=27 upd=0 chg=18 err=0)
+[08:23:02]   Progreso: 4200 (new=27 upd=0 chg=18 err=0)
+[08:23:34]   Progreso: 4250 (new=27 upd=0 chg=18 err=0)
+[08:24:07]   Progreso: 4300 (new=27 upd=0 chg=18 err=0)
+[08:24:39]   Progreso: 4350 (new=27 upd=0 chg=18 err=0)
+[08:25:11]   Progreso: 4400 (new=27 upd=0 chg=18 err=0)
+[08:25:42]   Progreso: 4450 (new=27 upd=0 chg=18 err=0)
+[08:26:14]   Progreso: 4500 (new=27 upd=0 chg=18 err=0)
+[08:26:37] 
+=== Categoría 15: Puntos de Venta (margin=pos) ===
+[08:26:37]   423 SKUs encontrados
+[08:26:45]   Progreso: 4550 (new=27 upd=0 chg=18 err=0)
+[08:27:22]   Progreso: 4600 (new=28 upd=0 chg=20 err=0)
+[08:27:57]   Progreso: 4650 (new=28 upd=0 chg=22 err=0)
+[08:28:31]   Progreso: 4700 (new=28 upd=0 chg=24 err=0)
+[08:29:04]   Progreso: 4750 (new=28 upd=0 chg=26 err=0)
+[08:29:44]   Progreso: 4800 (new=30 upd=0 chg=29 err=0)
+[08:30:21]   Progreso: 4850 (new=31 upd=0 chg=32 err=0)
+[08:30:59]   Progreso: 4900 (new=31 upd=0 chg=37 err=0)
+[08:31:03] 
+=== Categoría 16: Videovigilancia (margin=videovig) ===
+[08:31:03]   76 SKUs encontrados
+[08:31:21] ======================================================================
+[08:31:21] RESUMEN
+[08:31:21]   Procesados:    4928
+[08:31:21]   Nuevos:        33
+[08:31:21]   Actualizados:  0
+[08:31:21]   Cambios precio: 37
+[08:31:21]   Sin cambios:    2828
+[08:31:21]   Sin precio:    2030
+[08:31:21]   Errores:       0
+[08:31:21] ======================================================================

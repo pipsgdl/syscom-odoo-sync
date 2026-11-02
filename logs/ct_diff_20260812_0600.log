@@ -1,0 +1,6 @@
+[06:00:03] ======================================================================
+[06:00:03] CT → Odoo Sync (dry_run=False, diff=True, limit=None, use_local=False)
+[06:00:03] ======================================================================
+[06:00:03] Descargando cache CT desde Oracle...
+[06:00:04]   ✓ Cache actualizado: 5689 productos, 12704 keys, generado 2026-08-12 12:00:04
+[06:00:04] ERROR cargando cache: Expecting property name enclosed in double quotes: line 1 column 1303092 (char 1303091)

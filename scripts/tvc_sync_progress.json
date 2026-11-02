@@ -1,0 +1,12 @@
+{
+  "started": "2026-08-16T07:02:46.493548",
+  "mode": "diff",
+  "processed": 60,
+  "price_changed": 0,
+  "unchanged": 0,
+  "errors": 60,
+  "sin_match_odoo": 0,
+  "cache_used": "/Volumes/HIKSEMI 512/Claude code/LICITABOT/data/tvc_catalogo_2026-08-10.json",
+  "ended": "2026-08-16T07:02:51.744097",
+  "duration_sec": 5
+}

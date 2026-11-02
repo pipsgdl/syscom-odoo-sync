@@ -1,0 +1,35 @@
+[06:01:11] 
+############################################################
+[06:01:11] # SYSCOM → ODOO PRODUCTION SYNC
+[06:01:11] # Started: 2026-07-22 06:01:11
+[06:01:11] # Target: https://ocean-tech.odoo.com
+[06:01:11] # Mode: LIVE
+[06:01:11] # Images: SKIP
+[06:01:11] ############################################################
+Traceback (most recent call last):
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/syscom_to_odoo_prod_sync.py", line 712, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/syscom_to_odoo_prod_sync.py", line 619, in main
+    odoo.connect()
+    ~~~~~~~~~~~~^^
+  File "/Users/ingfelipe/syscom-odoo-sync/scripts/syscom_to_odoo_prod_sync.py", line 261, in connect
+    self.uid = common.authenticate(self.db, self.username, self.password, {})
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1096, in __call__
+    return self.__send(self.__name, args)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1435, in __request
+    response = self.__transport.request(
+        self.__host,
+    ...<2 lines>...
+        verbose=self.__verbose
+        )
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1140, in request
+    return self.single_request(host, handler, request_body, verbose)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xmlrpc/client.py", line 1170, in single_request
+    raise ProtocolError(
+    ...<3 lines>...
+        )
+xmlrpc.client.ProtocolError: <ProtocolError for ocean-tech.odoo.com/xmlrpc/2/common: 429 Too Many Requests>
